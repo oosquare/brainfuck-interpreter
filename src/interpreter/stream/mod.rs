@@ -1,7 +1,9 @@
 #![allow(unused)]
 
+use std::cell::RefCell;
 use std::io::{stdin, BufReader, Read, Stdin};
 use std::mem::replace;
+use std::rc::Rc;
 
 pub const EOF: i8 = -1;
 
@@ -65,21 +67,21 @@ impl OutStream for IntStandardOutStream {
 }
 
 pub struct VecStandardOutStream {
-    buf: Vec<i32>,
+    output: Rc<RefCell<Vec<i32>>>,
 }
 
 impl VecStandardOutStream {
     fn new() -> Self {
-        Self { buf: vec![] }
+        Self { output: Rc::new(RefCell::new(vec![])) }
     }
 
-    fn collect(&mut self) -> Vec<i32> {
-        replace(&mut self.buf, vec![])
+    fn output(&mut self) -> Rc<RefCell<Vec<i32>>> {
+        Rc::clone(&self.output)
     }
 }
 
 impl OutStream for VecStandardOutStream {
     fn write(&mut self, content: i32) {
-        self.buf.push(content);
+        self.output.borrow_mut().push(content);
     }
 }

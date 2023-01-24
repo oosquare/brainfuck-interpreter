@@ -1,4 +1,4 @@
 mod memory;
 mod instruction;
-mod processer;
+mod processor;
 mod stream;
