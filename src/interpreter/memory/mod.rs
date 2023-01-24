@@ -1,7 +1,11 @@
 #![allow(unused)]
 
+pub mod strategy;
+
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::rc::Rc;
+use strategy::{AddrRange, AddrStrategy, CellStrategy, EofStrategy, OverflowStrategy};
 
 pub type Result<T> = std::result::Result<T, MemoryError>;
 
@@ -10,10 +14,10 @@ pub enum MemoryError {
     OutOfBounds {
         now_position: isize,
         offset: isize,
-        half_len: isize,
+        range: AddrRange,
     },
     Overflow {
-        before_val: u8,
+        before: i32,
         add: i32,
     },
 }
@@ -26,85 +30,77 @@ impl Display for MemoryError {
             Self::OutOfBounds {
                 now_position,
                 offset,
-                half_len,
+                range: AddrRange { left, right },
             } => write!(
                 f,
                 "MemoryError::OutOfBounds: failed to seek to address {} + {} out of [{}, {}]",
-                now_position,
-                offset,
-                -half_len,
-                half_len - 1
+                now_position, offset, left, right
             ),
-            Self::Overflow { before_val, add } => write!(
+            Self::Overflow { before, add } => write!(
                 f,
-                "MemoryError::Overflow: {} + {} is greater than u8::MAX or less than u8::MIN",
-                before_val, add
+                "MemoryError::Overflow: {} + {} will overflow",
+                before, add
             ),
         }
     }
 }
 
-pub trait Memory {
-    /// Seek to `self.cur + offset` or do nothing and return `MemoryError::OutOfBounds`
-    /// if `self.cur + offset` is out of bounds.
-    fn seek(&mut self, offset: isize) -> Result<()>;
-
-    fn position(&self) -> isize;
-
-    fn add(&mut self, val: i32) -> Result<()>;
-
-    fn get(&self) -> u8;
+pub struct Memory {
+    memory: Vec<i32>,
+    cur: isize,
+    addr_strategy: Box<dyn AddrStrategy>,
+    cell_strategy: Box<dyn CellStrategy>,
+    eof_strategy: Box<dyn EofStrategy>,
+    overflow_strategy: Box<dyn OverflowStrategy>,
 }
 
-struct FixedSizedMemory {
-    cur: usize,
-    memory: Vec<u8>,
-}
-
-impl FixedSizedMemory {
-    pub fn new(half_len: usize) -> FixedSizedMemory {
-        FixedSizedMemory {
-            cur: half_len,
-            memory: vec![0; 2 * half_len],
-        }
-    }
-}
-
-impl Memory for FixedSizedMemory {
-    fn seek(&mut self, offset: isize) -> Result<()> {
-        let res = self.cur as isize + offset;
-
-        if res < 0 || res as usize >= self.memory.len() {
-            let half_len = self.memory.len() as isize / 2;
-            Err(MemoryError::OutOfBounds {
-                now_position: self.cur as isize - half_len,
-                offset,
-                half_len,
-            })
-        } else {
-            self.cur = res as usize;
-            Ok(())
+impl Memory {
+    pub fn new(
+        addr_strategy: Box<dyn AddrStrategy>,
+        cell_strategy: Box<dyn CellStrategy>,
+        eof_strategy: Box<dyn EofStrategy>,
+        overflow_strategy: Box<dyn OverflowStrategy>,
+    ) -> Self {
+        let memory = vec![0; addr_strategy.range().len()];
+        let cur = addr_strategy.initial();
+        Self {
+            memory,
+            cur,
+            addr_strategy,
+            cell_strategy,
+            eof_strategy,
+            overflow_strategy,
         }
     }
 
-    fn position(&self) -> isize {
-        self.cur as isize - self.memory.len() as isize / 2
+    pub fn seek(&mut self, offset: isize) -> Result<()> {
+        self.cur = self.addr_strategy.seek(self.cur, offset)?;
+        Ok(())
     }
 
-    fn add(&mut self, val: i32) -> Result<()> {
-        use std::primitive::u8;
-        let before = self.memory[self.cur];
-        let res = before as i64 + val as i64;
+    pub fn position(&self) -> isize {
+        self.cur
+    }
 
-        if res < u8::MIN as i64 || res > u8::MAX as i64 {
-            Err(MemoryError::Overflow { before_val: before, add: val })
-        } else {
-            self.memory[self.cur] = res as u8;
-            Ok(())
+    pub fn add(&mut self, add: i32) -> Result<()> {
+        let addr = self.addr_strategy.calc(self.cur);
+        let target = self.memory.get_mut(addr).unwrap();
+        let strategy = self.cell_strategy.as_ref();
+        let res = self.overflow_strategy.add(strategy, *target, add)?;
+        *target = res;
+        Ok(())
+    }
+
+    pub fn set(&mut self, val: i8) {
+        let addr = self.addr_strategy.calc(self.cur);
+        let target = self.memory.get_mut(addr).unwrap();
+
+        if let Some(res) = self.eof_strategy.check(val) {
+            *target = res as i32;
         }
     }
 
-    fn get(&self) -> u8 {
-        self.memory[self.cur]
+    pub fn get(&self) -> i32 {
+        self.memory[self.addr_strategy.calc(self.cur)]
     }
 }
