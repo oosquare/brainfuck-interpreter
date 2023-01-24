@@ -1,8 +1,8 @@
 #![allow(unused)]
 
-use super::{MemoryError, Result};
 
-const EOF: i8 = -1;
+use super::{MemoryError, Result};
+use crate::interpreter::stream::EOF;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct AddrRange {
@@ -121,9 +121,7 @@ impl CellStrategy for I8CellStrategy {
     }
 
     fn wrap(&self, num: i64) -> i32 {
-        use std::primitive::u8;
-        const MOD: i64 = u8::MAX as i64 + 1;
-        0i8.overflowing_add((num % MOD) as i8).0 as i32
+        num as i8 as i32
     }
 }
 
@@ -136,9 +134,7 @@ impl CellStrategy for I32CellStrategy {
     }
 
     fn wrap(&self, num: i64) -> i32 {
-        use std::primitive::u32;
-        const MOD: i64 = u32::MAX as i64 + 1;
-        0i32.overflowing_add((num % MOD) as i32).0
+        num as i32
     }
 }
 
