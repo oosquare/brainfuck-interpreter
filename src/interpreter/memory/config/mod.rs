@@ -2,6 +2,7 @@
 
 #[derive(Clone)]
 pub struct Config {
+    pub len: usize,
     pub addr: Addr,
     pub cell: Cell,
     pub overflow: Overflow,

@@ -41,6 +41,7 @@ impl Interpreter {
         let instructions = InstructionList::compile(syntax_tree);
 
         let memory::config::Config {
+            len,
             addr,
             cell,
             overflow,
@@ -48,6 +49,7 @@ impl Interpreter {
         } = self.memory_config.clone();
 
         let memory = memory::Builder::new()
+            .len(len)
             .addr(addr)
             .cell(cell)
             .overflow(overflow)
