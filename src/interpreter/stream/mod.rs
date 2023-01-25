@@ -1,9 +1,14 @@
 #![allow(unused)]
 
+pub mod config;
+
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::io::{stdin, BufReader, Read, Stdin};
 use std::mem::replace;
 use std::rc::Rc;
+
+use config::{Input, Output};
 
 pub const EOF: i8 = -1;
 
@@ -24,7 +29,7 @@ pub struct StandardInStream {
 }
 
 impl StandardInStream {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             reader: BufReader::new(stdin()),
         }
@@ -40,6 +45,22 @@ impl InStream for StandardInStream {
             Ok(0) | Err(_) => EOF,
             _ => buf[0] as i8,
         }
+    }
+}
+
+pub struct VecInStream {
+    input: Rc<RefCell<VecDeque<i8>>>,
+}
+
+impl VecInStream {
+    pub fn new(input: Rc<RefCell<VecDeque<i8>>>) -> Self {
+        Self { input }
+    }
+}
+
+impl InStream for VecInStream {
+    fn read(&mut self) -> i8 {
+        self.input.borrow_mut().pop_front().unwrap_or(EOF)
     }
 }
 
@@ -66,22 +87,58 @@ impl OutStream for IntStandardOutStream {
     }
 }
 
-pub struct VecStandardOutStream {
-    output: Rc<RefCell<Vec<i32>>>,
+pub struct VecOutStream {
+    output: Rc<RefCell<VecDeque<i32>>>,
 }
 
-impl VecStandardOutStream {
-    fn new() -> Self {
-        Self { output: Rc::new(RefCell::new(vec![])) }
-    }
-
-    fn output(&mut self) -> Rc<RefCell<Vec<i32>>> {
-        Rc::clone(&self.output)
+impl VecOutStream {
+    pub fn new(output: Rc<RefCell<VecDeque<i32>>>) -> Self {
+        Self { output }
     }
 }
 
-impl OutStream for VecStandardOutStream {
+impl OutStream for VecOutStream {
     fn write(&mut self, content: i32) {
-        self.output.borrow_mut().push(content);
+        self.output.borrow_mut().push_back(content);
+    }
+}
+
+pub struct Builder {
+    input: Input,
+    output: Output,
+}
+
+impl Builder {
+    pub fn new() -> Self {
+        Self {
+            input: Input::Standard,
+            output: Output::CharStandard,
+        }
+    }
+
+    pub fn input(mut self, input: Input) -> Self {
+        self.input = input;
+        self
+    }
+
+    pub fn output(mut self, output: Output) -> Self {
+        self.output = output;
+        self
+    }
+
+    pub fn build(self) -> (Box<dyn InStream>, Box<dyn OutStream>) {
+        let input: Box<dyn InStream> = match self.input {
+            Input::Null => Box::new(NullInStream {}),
+            Input::Standard => Box::new(StandardInStream::new()),
+            Input::Vec(v) => Box::new(VecInStream::new(v)),
+        };
+
+        let output: Box<dyn OutStream> = match self.output {
+            Output::CharStandard => Box::new(CharStandardOutStream {}),
+            Output::IntStandard => Box::new(IntStandardOutStream {}),
+            Output::Vec(v) => Box::new(VecOutStream::new(v)),
+        };
+
+        (input, output)
     }
 }

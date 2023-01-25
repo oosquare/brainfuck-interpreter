@@ -17,7 +17,7 @@ pub enum Instruction {
 pub struct InstructionList(pub Vec<Instruction>);
 
 impl InstructionList {
-    fn compile(syntax_tree: SyntaxTree) -> InstructionList {
+    pub fn compile(syntax_tree: SyntaxTree) -> InstructionList {
         let root = match syntax_tree {
             SyntaxTree::Root(v) => v,
             _ => unreachable!(),
