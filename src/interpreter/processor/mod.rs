@@ -7,7 +7,7 @@ use crate::interpreter::instruction::{Instruction, InstructionList};
 use crate::interpreter::memory::{Memory, MemoryError};
 use crate::interpreter::stream::{InStream, OutStream};
 
-type Result<T> = std::result::Result<T, ProcessorError>;
+pub type Result<T> = std::result::Result<T, ProcessorError>;
 
 struct Counter {
     val: usize,
@@ -49,7 +49,7 @@ pub struct Processor {
 }
 
 impl Processor {
-    fn new(
+    pub fn new(
         instructions: InstructionList,
         memory: Memory,
         in_stream: Box<dyn InStream>,
@@ -83,7 +83,10 @@ impl Processor {
 
     fn tick(&mut self) {
         self.counter.tick();
-        
+        self.check_halted();
+    }
+
+    fn check_halted(&mut self) {
         if self.instructions.0[self.counter.get()] == Instruction::Halt {
             self.state = ProcessorState::Halted;
         }
@@ -117,22 +120,47 @@ impl Processor {
             }
             Instruction::Input => {
                 self.memory.set(self.in_stream.read());
+                self.tick();
                 Ok(())
             }
             Instruction::Output => {
                 self.out_stream.write(self.memory.get());
+                self.tick();
                 Ok(())
             }
             Instruction::Jump(target) => {
-                todo!()
+                self.counter.jump(target);
+                self.check_halted();
+                Ok(())
             }
             Instruction::JumpIfZero(target) => {
-                todo!()
+                if self.memory.get() == 0 {
+                    self.counter.jump(target);
+                    self.check_halted();
+                } else {
+                    self.tick();
+                }
+
+                Ok(())
             }
             Instruction::Halt => {
-                todo!()
+                unreachable!()
             }
         }
+    }
+
+    pub fn run(&mut self) -> Result<()> {
+        match self.state {
+            ProcessorState::Halted => return Err(ProcessorError::AlreadyHalted),
+            ProcessorState::Failed => return Err(ProcessorError::Failed),
+            _ => {}
+        }
+
+        while self.state == ProcessorState::Ready || self.state == ProcessorState::Running {
+            self.step()?
+        }
+
+        Ok(())
     }
 }
 
