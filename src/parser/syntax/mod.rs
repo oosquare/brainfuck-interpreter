@@ -24,10 +24,7 @@ impl SyntaxTree {
         Ok(SyntaxTree::Root(block))
     }
 
-    fn parse_impl<I>(
-        current: &mut I,
-        left_bracket_count: &mut i32,
-    ) -> Result<Vec<SyntaxTree>>
+    fn parse_impl<I>(current: &mut I, left_bracket_count: &mut i32) -> Result<Vec<SyntaxTree>>
     where
         I: Iterator<Item = Token>,
     {
@@ -38,8 +35,16 @@ impl SyntaxTree {
                 match token {
                     SingleToken::Add => res.push(SyntaxTree::Add(count)),
                     SingleToken::GreaterThan => res.push(SyntaxTree::Seek(count)),
-                    SingleToken::Comma => res.push(SyntaxTree::Input),
-                    SingleToken::Dot => res.push(SyntaxTree::Output),
+                    SingleToken::Comma => {
+                        for _ in 0..count {
+                            res.push(SyntaxTree::Input)
+                        }
+                    }
+                    SingleToken::Dot => {
+                        for _ in 0..count {
+                            res.push(SyntaxTree::Output)
+                        }
+                    }
                     SingleToken::LeftBracket => {
                         *left_bracket_count += 1;
                         let block = SyntaxTree::parse_impl(current, left_bracket_count)?;
