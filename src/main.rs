@@ -16,7 +16,9 @@ use std::path::PathBuf;
 use brainfuck_interpreter::{
     memory_config, stream_config, Interpreter, MemoryConfig, StreamConfig,
 };
-use clap::{builder::PathBufValueParser, command, value_parser, Arg};
+use clap::{
+    builder::PathBufValueParser, command, crate_authors, crate_description, value_parser, Arg,
+};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = input();
@@ -26,7 +28,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn input() -> clap::ArgMatches {
-    let cmd = command!();
+    let cmd = command!()
+        .author(crate_authors!())
+        .about(crate_description!());
     let cmd = cmd.arg(
         Arg::new("LEN")
             .long("len")
@@ -74,9 +78,13 @@ fn input() -> clap::ArgMatches {
             .help("the operation the interpreter should do when an overflow error occurs.\n")
             .long_help({
                 let mut h = String::new();
-                h.push_str("the operation the interpreter should do when an overflow error occurs.\n");
+                h.push_str(
+                    "the operation the interpreter should do when an overflow error occurs.\n",
+                );
                 h.push_str("\n");
-                h.push_str(" - wrap: automatically wrap the value in cell (e.g.: `127 + 1` => `-127`)\n");
+                h.push_str(
+                    " - wrap: automatically wrap the value in cell (e.g.: `127 + 1` => `-127`)\n",
+                );
                 h.push_str(" - error: throw an error and abort");
                 h
             }),
@@ -97,7 +105,7 @@ fn input() -> clap::ArgMatches {
                 h.push_str(" - keep: keep what the `EOF` is and return it (`EOF == -1`)\n");
                 h.push_str(" - ignore: ignore this input and leave the cell unchanged");
                 h
-            })
+            }),
     );
     let cmd = cmd.arg(
         Arg::new("INPUT")
