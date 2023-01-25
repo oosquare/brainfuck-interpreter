@@ -30,7 +30,8 @@ impl Token {
 pub struct TokenList(pub Vec<Token>);
 
 impl TokenList {
-    /// Combine the same tokens into a `Token` which contains the count of them.
+    /// Combine the same tokens (except `[` and ']') into a `Token`
+    /// which contains the count of them.
     fn combine_same(tokens: SingleTokenList) -> TokenList {
         let mut res = vec![];
         let mut last = None::<SingleToken>;
@@ -40,7 +41,10 @@ impl TokenList {
             if let None = last {
                 now = Some(Token::new(token, 1));
             } else if let Some(last) = last {
-                if last == token {
+                if last == token
+                    && token != SingleToken::LeftBracket
+                    && token != SingleToken::RightBracket
+                {
                     now.as_mut().unwrap().count += 1;
                 } else {
                     res.push(now.take().unwrap());
@@ -222,11 +226,19 @@ mod tests {
             SingleToken::LessThan,
             SingleToken::LessThan,
             SingleToken::GreaterThan,
+            SingleToken::LeftBracket,
+            SingleToken::LeftBracket,
+            SingleToken::RightBracket,
+            SingleToken::RightBracket,
         ];
         let simplifed = TokenList::from(list);
         let expected = TokenList(vec![
             Token::new(SingleToken::Add, -1),
             Token::new(SingleToken::GreaterThan, -3),
+            Token::new(SingleToken::LeftBracket, 1),
+            Token::new(SingleToken::LeftBracket, 1),
+            Token::new(SingleToken::RightBracket, 1),
+            Token::new(SingleToken::RightBracket, 1),
         ]);
         assert_eq!(simplifed, expected);
     }
