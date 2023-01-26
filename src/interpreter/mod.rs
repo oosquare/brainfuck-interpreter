@@ -5,15 +5,14 @@ pub mod memory;
 pub mod processor;
 pub mod stream;
 
-use std::error::Error;
-use std::fmt::{self, Display, Formatter};
+use snafu::prelude::*;
 
 use crate::parser::{parse, syntax::ParseError};
 
 use instruction::InstructionList;
 use memory::Memory;
-use processor::{Processor, ProcessorState};
 use processor::ProcessorError;
+use processor::{Processor, ProcessorState};
 use stream::{CharStandardOutStream, StandardInStream};
 
 type Result<T> = std::result::Result<T, InterpreterError>;
@@ -77,41 +76,24 @@ impl Interpreter {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum InterpreterError {
-    Parse(ParseError),
-    Runtime(ProcessorError),
+    #[snafu(display("couldn't parse the code\ncaused by: {source}"))]
+    Parse { source: ParseError },
+    #[snafu(display("an error occured when running the code\ncaused by: {source}"))]
+    Runtime { source: ProcessorError },
+    #[snafu(display("the program hasn't been loaded yet"))]
     Uninitialized,
-}
-
-impl Error for InterpreterError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Parse(e) => Some(e),
-            Self::Runtime(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl Display for InterpreterError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Parse(_) => write!(f, "InterpreterError::Parse: invalid syntax"),
-            Self::Runtime(_) => write!(f, "InterpreterError::Runtime: error occured when running"),
-            Self::Uninitialized => write!(f, "InterpreterError::Uninitialized: the program hasn't been loaded")
-        }
-    }
 }
 
 impl From<ParseError> for InterpreterError {
     fn from(e: ParseError) -> Self {
-        Self::Parse(e)
+        Self::Parse { source: e }
     }
 }
 
 impl From<ProcessorError> for InterpreterError {
     fn from(e: ProcessorError) -> Self {
-        Self::Runtime(e)
+        Self::Runtime { source: e }
     }
 }

@@ -91,5 +91,5 @@ Options:
 
 Licensed under MIT.
 
-Copyright (C) Justin Chen (ctj12461), 2023
+Copyright (C) 2023 Justin Chen (ctj12461)
 

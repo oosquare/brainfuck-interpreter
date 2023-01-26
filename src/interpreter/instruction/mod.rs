@@ -52,8 +52,6 @@ impl InstructionList {
 
 #[cfg(test)]
 mod tests {
-    use std::vec;
-
     use crate::parser::syntax;
 
     use super::*;

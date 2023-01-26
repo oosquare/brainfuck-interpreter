@@ -5,29 +5,47 @@
 //! so on.
 //!
 //! Licensed under MIT.
-//! Copyright (C) Justin Chen (ctj12461), 2023
+//! Copyright (C) 2023 Justin Chen (ctj12461)
 //!
 
 #![allow(unused)]
 
 use std::error::Error;
+use std::io::ErrorKind;
 use std::path::PathBuf;
+use std::process;
 
 use brainfuck_interpreter::{
     memory_config, stream_config, Interpreter, MemoryConfig, StreamConfig,
 };
 use clap::{
     builder::PathBufValueParser, command, crate_authors, crate_description, value_parser, Arg,
+    ArgMatches,
 };
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let matches = input();
     let (memory_config, stream_config, source) = parse(&matches);
-    run(memory_config, stream_config, source)?;
-    Ok(())
+
+    let code = match std::fs::read_to_string(source) {
+        Ok(code) => code,
+        Err(e) => {
+            match e.kind() {
+                ErrorKind::NotFound => eprintln!("error: couldn't find {}", source.display()),
+                _ => eprintln!("error: couldn't open {}\ncaused by: {e}", source.display()),
+            }
+
+            process::exit(1);
+        }
+    };
+
+    if let Err(e) = run(memory_config, stream_config, code) {
+        println!("error: {e}");
+        process::exit(1);
+    }
 }
 
-fn input() -> clap::ArgMatches {
+fn input() -> ArgMatches {
     let cmd = command!()
         .author(crate_authors!())
         .about(crate_description!());
@@ -140,7 +158,7 @@ fn input() -> clap::ArgMatches {
     matches
 }
 
-fn parse<'a>(matches: &'a clap::ArgMatches) -> (MemoryConfig, StreamConfig, &'a PathBuf) {
+fn parse<'a>(matches: &'a ArgMatches) -> (MemoryConfig, StreamConfig, &'a PathBuf) {
     let memory_config = MemoryConfig {
         len: *matches.get_one::<usize>("LEN").unwrap(),
         addr: match matches.get_one::<String>("ADDR").unwrap().as_str() {
@@ -186,10 +204,9 @@ fn parse<'a>(matches: &'a clap::ArgMatches) -> (MemoryConfig, StreamConfig, &'a 
 fn run(
     memory_config: MemoryConfig,
     stream_config: StreamConfig,
-    source: &PathBuf,
+    code: String,
 ) -> Result<(), Box<dyn Error>> {
     let mut interpreter = Interpreter::new(memory_config, stream_config);
-    let code = std::fs::read_to_string(source)?;
     interpreter.load(&code)?;
     interpreter.run()?;
     Ok(())

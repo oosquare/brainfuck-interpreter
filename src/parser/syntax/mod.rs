@@ -1,8 +1,7 @@
 #![allow(unused)]
 
 use crate::lexer::{SingleToken, Token, TokenList};
-use std::error::Error;
-use std::fmt::{self, Display, Formatter};
+use snafu::prelude::*;
 
 pub type Result<T> = std::result::Result<T, ParseError>;
 
@@ -52,11 +51,7 @@ impl SyntaxTree {
                     }
                     SingleToken::RightBracket => {
                         *left_bracket_count -= 1;
-
-                        if *left_bracket_count < 0 {
-                            return Err(ParseError::UnpairedRightBracket);
-                        }
-
+                        ensure!(*left_bracket_count >= 0, UnpairedRightBracketSnafu);
                         break;
                     }
                     // Both `SingleToken::Sub` and `SingleToken::LessThan` have been
@@ -78,21 +73,12 @@ impl SyntaxTree {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum ParseError {
+    #[snafu(display("unpaired `[` was found, and expect another `]`"))]
     UnpairedLeftBracket,
+    #[snafu(display("unpaired `]` was found, and expect another `[`"))]
     UnpairedRightBracket,
-}
-
-impl Error for ParseError {}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match *self {
-            Self::UnpairedLeftBracket => write!(f, "ParseError::UnpairedLeftBracket: expect `]`"),
-            Self::UnpairedRightBracket => write!(f, "ParseError::UnpairedRightBracket: expect `[`"),
-        }
-    }
 }
 
 #[cfg(test)]

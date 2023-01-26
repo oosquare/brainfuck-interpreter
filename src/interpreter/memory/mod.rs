@@ -4,48 +4,27 @@ pub mod config;
 pub(super) mod strategy;
 
 use config::{Addr, Cell, Eof, Overflow};
-use std::error::Error;
-use std::fmt::{self, Display, Formatter};
+use snafu::prelude::*;
 use std::ops::Add;
 use std::rc::Rc;
 use strategy::{AddrRange, AddrStrategy, CellStrategy, EofStrategy, OverflowStrategy};
 
 pub type Result<T> = std::result::Result<T, MemoryError>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum MemoryError {
+    #[snafu(display("try to seek pointer from {} to {}, which is out of [{}, {}]",
+    now_position, now_position + offset, range.left, range.right))]
     OutOfBounds {
         now_position: isize,
         offset: isize,
         range: AddrRange,
     },
+    #[snafu(display("{before} + {add} will overflow"))]
     Overflow {
         before: i32,
         add: i32,
     },
-}
-
-impl Error for MemoryError {}
-
-impl Display for MemoryError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match *self {
-            Self::OutOfBounds {
-                now_position,
-                offset,
-                range: AddrRange { left, right },
-            } => write!(
-                f,
-                "MemoryError::OutOfBounds: failed to seek to address {} + {} out of [{}, {}]",
-                now_position, offset, left, right
-            ),
-            Self::Overflow { before, add } => write!(
-                f,
-                "MemoryError::Overflow: {} + {} will overflow",
-                before, add
-            ),
-        }
-    }
 }
 
 pub struct Memory {
@@ -169,7 +148,7 @@ impl Builder {
         let eof_strategy: Box<dyn EofStrategy> = match self.eof {
             Eof::Zero => Box::new(strategy::ZeroEofStrategy {}),
             Eof::Keep => Box::new(strategy::KeepEofStrategy {}),
-            Eof::Ignore => Box::new(strategy::IgnoreEofStrategy {}),  
+            Eof::Ignore => Box::new(strategy::IgnoreEofStrategy {}),
         };
         Memory::new(
             addr_strategy,

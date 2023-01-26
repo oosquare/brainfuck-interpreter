@@ -1,7 +1,6 @@
 #![allow(unused)]
 
-use std::error::Error;
-use std::fmt::{self, Display, Formatter};
+use snafu::prelude::*;
 
 use crate::interpreter::instruction::{Instruction, InstructionList};
 use crate::interpreter::memory::{Memory, MemoryError};
@@ -164,41 +163,18 @@ impl Processor {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum ProcessorError {
-    Memory(MemoryError),
+    #[snafu(display("invalid memory operation occured\ncaused by: {source}"))]
+    Memory { source: MemoryError },
+    #[snafu(display("all instructions have already finished"))]
     AlreadyHalted,
+    #[snafu(display("couldn't continue to run due to the previous error"))]
     Failed,
-}
-
-impl Error for ProcessorError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Memory(e) => Some(e),
-            Self::AlreadyHalted => None,
-            Self::Failed => None,
-        }
-    }
-}
-
-impl Display for ProcessorError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Memory(e) => {
-                write!(f, "ProcessorError::Memory: invalid memory operation")
-            }
-            Self::AlreadyHalted => {
-                write!(f, "ProcessorError::AlreadyHalted: all instructions finished")
-            }
-            Self::Failed => {
-                write!(f, "ProcessorError::Failed: processor failed to run")
-            }
-        }
-    }
 }
 
 impl From<MemoryError> for ProcessorError {
     fn from(e: MemoryError) -> Self {
-        Self::Memory(e)
+        Self::Memory { source: e }
     }
 }
