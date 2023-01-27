@@ -80,7 +80,7 @@ impl Interpreter {
 pub enum InterpreterError {
     #[snafu(display("couldn't parse the code\ncaused by: {source}"))]
     Parse { source: ParseError },
-    #[snafu(display("an error occured when running the code\ncaused by: {source}"))]
+    #[snafu(display("an error occurred when running the code\ncaused by: {source}"))]
     Runtime { source: ProcessorError },
     #[snafu(display("the program hasn't been loaded yet"))]
     Uninitialized,
