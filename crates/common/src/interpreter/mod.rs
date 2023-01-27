@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+pub mod context;
 mod instruction;
 pub mod memory;
 pub mod processor;
@@ -9,51 +10,13 @@ use snafu::prelude::*;
 
 use crate::parser::{parse, syntax::ParseError};
 
+use context::Context;
 use instruction::InstructionList;
-use memory::Memory;
-use processor::ProcessorError;
-use processor::{Processor, ProcessorState};
-use stream::{InStream, OutStream};
+use memory::{Memory, config::Config as MemoryConfig};
+use processor::{ProcessorError, Processor};
+use stream::config::Config as StreamConfig;
 
 type Result<T> = std::result::Result<T, InterpreterError>;
-
-pub struct Context {
-    pub memory: Memory,
-    pub in_stream: Box<dyn InStream>,
-    pub out_stream: Box<dyn OutStream>,
-}
-
-impl Context {
-    pub fn new(
-        memory_config: memory::config::Config,
-        stream_config: stream::config::Config,
-    ) -> Self {
-        let memory::config::Config {
-            len,
-            addr,
-            cell,
-            overflow,
-            eof,
-        } = memory_config.clone();
-
-        let memory = memory::Builder::new()
-            .len(len)
-            .addr(addr)
-            .cell(cell)
-            .overflow(overflow)
-            .eof(eof)
-            .build();
-
-        let stream::config::Config { input, output } = stream_config.clone();
-        let (in_stream, out_stream) = stream::Builder::new().input(input).output(output).build();
-
-        Self {
-            memory,
-            in_stream,
-            out_stream,
-        }
-    }
-}
 
 pub struct Interpreter {
     context: Context,
@@ -62,8 +25,8 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new(
-        memory_config: memory::config::Config,
-        stream_config: stream::config::Config,
+        memory_config: MemoryConfig,
+        stream_config: StreamConfig,
     ) -> Self {
         Self {
             context: Context::new(memory_config, stream_config),

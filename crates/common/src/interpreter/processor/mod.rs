@@ -2,11 +2,10 @@
 
 use snafu::prelude::*;
 
+use crate::interpreter::context::Context;
 use crate::interpreter::instruction::{Instruction, InstructionList};
 use crate::interpreter::memory::{Memory, MemoryError};
 use crate::interpreter::stream::{InStream, OutStream};
-
-use super::Context;
 
 pub type Result<T> = std::result::Result<T, ProcessorError>;
 
@@ -93,9 +92,7 @@ impl Processor {
 
         match self.instructions.0[self.counter.get()] {
             Instruction::Add(val) => {
-                let res = memory.add(val);
-
-                if let Err(e) = res {
+                if let Err(e) = memory.add(val) {
                     self.abort();
                     Err(e.into())
                 } else {
@@ -104,9 +101,7 @@ impl Processor {
                 }
             }
             Instruction::Seek(offset) => {
-                let res = memory.seek(offset);
-
-                if let Err(e) = res {
+                if let Err(e) = memory.seek(offset) {
                     self.abort();
                     Err(e.into())
                 } else {
@@ -115,16 +110,12 @@ impl Processor {
                 }
             }
             Instruction::Input => {
-                memory
-                    
-                    .set(in_stream.read());
+                memory.set(in_stream.read());
                 self.tick();
                 Ok(())
             }
             Instruction::Output => {
-                out_stream
-                    
-                    .write(memory.get());
+                out_stream.write(memory.get());
                 self.tick();
                 Ok(())
             }

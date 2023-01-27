@@ -21,10 +21,7 @@ pub enum MemoryError {
         range: AddrRange,
     },
     #[snafu(display("{before} + {add} will overflow"))]
-    Overflow {
-        before: i32,
-        add: i32,
-    },
+    Overflow { before: i32, add: i32 },
 }
 
 pub struct Memory {
