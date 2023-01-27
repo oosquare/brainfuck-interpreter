@@ -163,7 +163,7 @@ fn parse<'a>(matches: &'a ArgMatches) -> (MemoryConfig, StreamConfig, &'a PathBu
         len: *matches.get_one::<usize>("LEN").unwrap(),
         addr: match matches.get_one::<String>("ADDR").unwrap().as_str() {
             "unsigned" => memory_config::Addr::Unsigned,
-            "signed" => memory_config::Addr::Unsigned,
+            "signed" => memory_config::Addr::Signed,
             _ => unreachable!(),
         },
         cell: match matches.get_one::<String>("CELL").unwrap().as_str() {
