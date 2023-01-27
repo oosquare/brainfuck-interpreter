@@ -15,13 +15,11 @@ use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process;
 
-use common::{
-    memory_config, stream_config, Interpreter, MemoryConfig, StreamConfig,
-};
 use clap::{
     builder::PathBufValueParser, command, crate_authors, crate_description, value_parser, Arg,
     ArgMatches,
 };
+use common::{memory_config, stream_config, Interpreter, MemoryConfig, StreamConfig};
 
 fn main() {
     let matches = input();

@@ -65,9 +65,7 @@ mod tests {
                 SyntaxTree::Seek(-1),
                 SyntaxTree::Add(1),
                 SyntaxTree::Seek(1),
-                SyntaxTree::Loop(vec![
-                    SyntaxTree::Output,
-                ])
+                SyntaxTree::Loop(vec![SyntaxTree::Output]),
             ]),
             SyntaxTree::Output,
         ]);

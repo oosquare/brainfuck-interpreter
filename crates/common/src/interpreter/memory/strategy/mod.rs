@@ -1,6 +1,5 @@
 #![allow(unused)]
 
-
 use super::{MemoryError, Result};
 use crate::interpreter::stream::EOF;
 
@@ -170,7 +169,6 @@ impl OverflowStrategy for WrapOverflowStrategy {
         }
     }
 }
-
 
 pub trait EofStrategy {
     fn check(&self, input: i8) -> Option<i8>;

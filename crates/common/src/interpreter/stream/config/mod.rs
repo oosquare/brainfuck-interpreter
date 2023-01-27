@@ -1,13 +1,13 @@
 #![allow(unused)]
 
+use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 #[derive(Clone)]
 pub struct Config {
     pub input: Input,
-    pub output: Output
+    pub output: Output,
 }
 
 #[derive(Clone)]

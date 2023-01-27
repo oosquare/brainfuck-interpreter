@@ -12,8 +12,8 @@ use crate::parser::{parse, syntax::ParseError};
 
 use context::Context;
 use instruction::InstructionList;
-use memory::{Memory, config::Config as MemoryConfig};
-use processor::{ProcessorError, Processor};
+use memory::{config::Config as MemoryConfig, Memory};
+use processor::{Processor, ProcessorError};
 use stream::config::Config as StreamConfig;
 
 type Result<T> = std::result::Result<T, InterpreterError>;
@@ -24,10 +24,7 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new(
-        memory_config: MemoryConfig,
-        stream_config: StreamConfig,
-    ) -> Self {
+    pub fn new(memory_config: MemoryConfig, stream_config: StreamConfig) -> Self {
         Self {
             context: Context::new(memory_config, stream_config),
             processor: None,
