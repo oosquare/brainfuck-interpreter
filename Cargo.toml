@@ -1,4 +1,7 @@
-[package]
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
 name = "brainfuck-interpreter"
 version = "0.1.0"
 edition = "2021"
@@ -8,8 +11,6 @@ readme = "README.md"
 repository = "https://github.com/ctj12461/brainfuck-interpreter"
 license = "MIT"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+[workspace.dependencies]
 clap = { version = "4.1.4", features = ["cargo"] }
 snafu = "0.7.4"

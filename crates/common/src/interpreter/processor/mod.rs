@@ -6,6 +6,8 @@ use crate::interpreter::instruction::{Instruction, InstructionList};
 use crate::interpreter::memory::{Memory, MemoryError};
 use crate::interpreter::stream::{InStream, OutStream};
 
+use super::Context;
+
 pub type Result<T> = std::result::Result<T, ProcessorError>;
 
 struct Counter {
@@ -41,35 +43,20 @@ pub enum ProcessorState {
 pub struct Processor {
     counter: Counter,
     instructions: InstructionList,
-    memory: Memory,
-    in_stream: Box<dyn InStream>,
-    out_stream: Box<dyn OutStream>,
     state: ProcessorState,
 }
 
 impl Processor {
-    pub fn new(
-        instructions: InstructionList,
-        memory: Memory,
-        in_stream: Box<dyn InStream>,
-        out_stream: Box<dyn OutStream>,
-    ) -> Self {
+    pub fn new(instructions: InstructionList) -> Self {
         Self {
             counter: Counter::new(),
             instructions,
-            memory,
-            in_stream,
-            out_stream,
             state: ProcessorState::Ready,
         }
     }
 
     pub fn counter(&self) -> usize {
         self.counter.get()
-    }
-
-    pub fn memory(&self) -> &Memory {
-        &self.memory
     }
 
     pub fn state(&self) -> ProcessorState {
@@ -91,7 +78,13 @@ impl Processor {
         }
     }
 
-    pub fn step(&mut self) -> Result<()> {
+    pub fn step(&mut self, context: &mut Context) -> Result<()> {
+        let Context {
+            memory,
+            in_stream,
+            out_stream,
+        } = context;
+
         match self.state {
             ProcessorState::Halted => return Err(ProcessorError::AlreadyHalted),
             ProcessorState::Failed => return Err(ProcessorError::Failed),
@@ -100,7 +93,9 @@ impl Processor {
 
         match self.instructions.0[self.counter.get()] {
             Instruction::Add(val) => {
-                if let Err(e) = self.memory.add(val) {
+                let res = memory.add(val);
+
+                if let Err(e) = res {
                     self.abort();
                     Err(e.into())
                 } else {
@@ -109,7 +104,9 @@ impl Processor {
                 }
             }
             Instruction::Seek(offset) => {
-                if let Err(e) = self.memory.seek(offset) {
+                let res = memory.seek(offset);
+
+                if let Err(e) = res {
                     self.abort();
                     Err(e.into())
                 } else {
@@ -118,12 +115,16 @@ impl Processor {
                 }
             }
             Instruction::Input => {
-                self.memory.set(self.in_stream.read());
+                memory
+                    
+                    .set(in_stream.read());
                 self.tick();
                 Ok(())
             }
             Instruction::Output => {
-                self.out_stream.write(self.memory.get());
+                out_stream
+                    
+                    .write(memory.get());
                 self.tick();
                 Ok(())
             }
@@ -133,7 +134,7 @@ impl Processor {
                 Ok(())
             }
             Instruction::JumpIfZero(target) => {
-                if self.memory.get() == 0 {
+                if memory.get() == 0 {
                     self.counter.jump(target);
                     self.check_halted();
                 } else {
@@ -148,7 +149,7 @@ impl Processor {
         }
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    pub fn run(&mut self, context: &mut Context) -> Result<()> {
         match self.state {
             ProcessorState::Halted => return Err(ProcessorError::AlreadyHalted),
             ProcessorState::Failed => return Err(ProcessorError::Failed),
@@ -156,7 +157,7 @@ impl Processor {
         }
 
         while self.state == ProcessorState::Ready || self.state == ProcessorState::Running {
-            self.step()?
+            self.step(context)?
         }
 
         Ok(())

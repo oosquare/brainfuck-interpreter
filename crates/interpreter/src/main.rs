@@ -15,7 +15,7 @@ use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process;
 
-use brainfuck_interpreter::{
+use common::{
     memory_config, stream_config, Interpreter, MemoryConfig, StreamConfig,
 };
 use clap::{

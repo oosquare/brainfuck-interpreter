@@ -13,39 +13,28 @@ use instruction::InstructionList;
 use memory::Memory;
 use processor::ProcessorError;
 use processor::{Processor, ProcessorState};
-use stream::{CharStandardOutStream, StandardInStream};
+use stream::{InStream, OutStream};
 
 type Result<T> = std::result::Result<T, InterpreterError>;
 
-pub struct Interpreter {
-    memory_config: memory::config::Config,
-    stream_config: stream::config::Config,
-    processor: Option<Processor>,
+pub struct Context {
+    pub memory: Memory,
+    pub in_stream: Box<dyn InStream>,
+    pub out_stream: Box<dyn OutStream>,
 }
 
-impl Interpreter {
+impl Context {
     pub fn new(
         memory_config: memory::config::Config,
         stream_config: stream::config::Config,
     ) -> Self {
-        Self {
-            memory_config,
-            stream_config,
-            processor: None,
-        }
-    }
-
-    pub fn load(&mut self, code: &str) -> Result<()> {
-        let syntax_tree = parse(code)?;
-        let instructions = InstructionList::compile(syntax_tree);
-
         let memory::config::Config {
             len,
             addr,
             cell,
             overflow,
             eof,
-        } = self.memory_config.clone();
+        } = memory_config.clone();
 
         let memory = memory::Builder::new()
             .len(len)
@@ -55,10 +44,38 @@ impl Interpreter {
             .eof(eof)
             .build();
 
-        let stream::config::Config { input, output } = self.stream_config.clone();
+        let stream::config::Config { input, output } = stream_config.clone();
         let (in_stream, out_stream) = stream::Builder::new().input(input).output(output).build();
 
-        self.processor = Some(Processor::new(instructions, memory, in_stream, out_stream));
+        Self {
+            memory,
+            in_stream,
+            out_stream,
+        }
+    }
+}
+
+pub struct Interpreter {
+    context: Context,
+    processor: Option<Processor>,
+}
+
+impl Interpreter {
+    pub fn new(
+        memory_config: memory::config::Config,
+        stream_config: stream::config::Config,
+    ) -> Self {
+        Self {
+            context: Context::new(memory_config, stream_config),
+            processor: None,
+        }
+    }
+
+    pub fn load(&mut self, code: &str) -> Result<()> {
+        let syntax_tree = parse(code)?;
+        let instructions = InstructionList::compile(syntax_tree);
+
+        self.processor = Some(Processor::new(instructions));
         Ok(())
     }
 
@@ -68,7 +85,7 @@ impl Interpreter {
 
     pub fn run(&mut self) -> Result<()> {
         if let Some(processor) = self.processor.as_mut() {
-            processor.run()?;
+            processor.run(&mut self.context)?;
             Ok(())
         } else {
             Err(InterpreterError::Uninitialized)
