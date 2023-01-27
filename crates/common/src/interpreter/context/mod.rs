@@ -21,7 +21,7 @@ impl Context {
             cell,
             overflow,
             eof,
-        } = memory_config.clone();
+        } = memory_config;
 
         let memory = MemoryBuilder::new()
             .len(len)
@@ -31,7 +31,7 @@ impl Context {
             .eof(eof)
             .build();
 
-        let StreamConfig { input, output } = stream_config.clone();
+        let StreamConfig { input, output } = stream_config;
         let (in_stream, out_stream) = StreamBuilder::new().input(input).output(output).build();
 
         Self {

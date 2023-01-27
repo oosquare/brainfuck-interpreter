@@ -70,7 +70,7 @@ fn input() -> ArgMatches {
             .long_help({
                 let mut h = String::new();
                 h.push_str("the address range of the memory (tape).\n");
-                h.push_str("\n");
+                h.push('\n');
                 h.push_str(" - unsigned: [0, len - 1]\n");
                 h.push_str(" - signed: [-ceil(len / 2), ceil(len / 2) - 1]");
                 h
@@ -99,7 +99,7 @@ fn input() -> ArgMatches {
                 h.push_str(
                     "the operation the interpreter should do when an overflow error occurs.\n",
                 );
-                h.push_str("\n");
+                h.push('\n');
                 h.push_str(
                     " - wrap: automatically wrap the value in cell (e.g.: `127 + 1` => `-127`)\n",
                 );
@@ -118,7 +118,7 @@ fn input() -> ArgMatches {
             .long_help({
                 let mut h = String::new();
                 h.push_str("the operation the interpreter should do when an `EOF` is read.\n");
-                h.push_str("\n");
+                h.push('\n');
                 h.push_str(" - zero: turn `EOF` to `0`\n");
                 h.push_str(" - keep: keep what the `EOF` is and return it (`EOF == -1`)\n");
                 h.push_str(" - ignore: ignore this input and leave the cell unchanged");
@@ -154,11 +154,10 @@ fn input() -> ArgMatches {
             .long_help("the path of the brainfuck program source code file."),
     );
 
-    let matches = cmd.get_matches();
-    matches
+    cmd.get_matches()
 }
 
-fn parse<'a>(matches: &'a ArgMatches) -> (MemoryConfig, StreamConfig, &'a PathBuf) {
+fn parse(matches: &ArgMatches) -> (MemoryConfig, StreamConfig, &PathBuf) {
     let memory_config = MemoryConfig {
         len: *matches.get_one::<usize>("LEN").unwrap(),
         addr: match matches.get_one::<String>("ADDR").unwrap().as_str() {

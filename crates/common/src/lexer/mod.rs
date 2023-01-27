@@ -38,9 +38,7 @@ impl TokenList {
         let mut now = None::<Token>;
 
         for token in tokens {
-            if let None = last {
-                now = Some(Token::new(token, 1));
-            } else if let Some(last) = last {
+            if let Some(last) = last {
                 if last == token
                     && token != SingleToken::LeftBracket
                     && token != SingleToken::RightBracket
@@ -50,6 +48,8 @@ impl TokenList {
                     res.push(now.take().unwrap());
                     now = Some(Token::new(token, 1));
                 }
+            } else {
+                now = Some(Token::new(token, 1));
             }
 
             last = Some(token);
@@ -70,14 +70,14 @@ impl TokenList {
 
         for Token { token, count } in self.0 {
             if let SingleToken::Add = token {
-                if let None = now {
+                if now.is_none() {
                     now = Some(Token::new(SingleToken::Add, 0));
                 }
 
                 now.as_mut().unwrap().count += count;
                 continue;
             } else if let SingleToken::Sub = token {
-                if let None = now {
+                if now.is_none() {
                     now = Some(Token::new(SingleToken::Add, 0));
                 }
 
@@ -111,14 +111,14 @@ impl TokenList {
 
         for Token { token, count } in self.0 {
             if let SingleToken::LessThan = token {
-                if let None = now {
+                if now.is_none() {
                     now = Some(Token::new(SingleToken::GreaterThan, 0));
                 }
 
                 now.as_mut().unwrap().count -= count;
                 continue;
             } else if let SingleToken::GreaterThan = token {
-                if let None = now {
+                if now.is_none() {
                     now = Some(Token::new(SingleToken::GreaterThan, 0));
                 }
 
@@ -182,7 +182,7 @@ fn token(ch: char) -> SingleToken {
 }
 
 fn build_single_token_list(code: &str) -> SingleTokenList {
-    split(code).into_iter().map(|ch| token(ch)).collect()
+    split(code).into_iter().map(token).collect()
 }
 
 /// Build a `TokenList` from a brainfuck program.

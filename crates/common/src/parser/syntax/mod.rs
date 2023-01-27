@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::cmp::Ordering;
+
 use crate::lexer::{SingleToken, Token, TokenList};
 use snafu::prelude::*;
 
