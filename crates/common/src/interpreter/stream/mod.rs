@@ -83,7 +83,7 @@ pub struct IntStandardOutStream {}
 
 impl OutStream for IntStandardOutStream {
     fn write(&mut self, content: i32) {
-        print!("{} ", content);
+        print!("{content} ");
     }
 }
 
