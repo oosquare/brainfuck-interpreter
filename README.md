@@ -14,15 +14,15 @@ so on.
 ```sh
 $ git clone https://github.com/ctj12461/brainfuck-interpreter.git
 $ cd brainfuck-interpreter
-$ cargo install --path . # The program will be installed to ~/.cargo/bin
-$ brainfuck-interpreter ./examples/helloworld.bf
+$ cargo install --path ./crates/bf-exec # The program will be installed to ~/.cargo/bin
+$ bf-exec ./examples/helloworld.bf
 Hello World!
 ```
 
 #### Verbose Version
 
 ```plain
-Usage: brainfuck-interpreter [OPTIONS] <SOURCE>
+Usage: bf-exec [OPTIONS] <SOURCE>
 
 Arguments:
   <SOURCE>

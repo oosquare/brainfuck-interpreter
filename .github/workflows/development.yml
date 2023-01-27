@@ -1,0 +1,29 @@
+name: Development
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fetch
+      uses: actions/checkout@v3
+      
+    - name: Init
+      run: rustup component add rustfmt
+      run: rustup component add clippy
+
+    - name: Build
+      run: cargo build --verbose
+
+    - name: Test
+      run: cargo test --verbose
+  
+    - name: Format
+      run: cargo fmt --all -- --check
+    
+    - name: Lint
+      run: cargo clippy -Dwarnings

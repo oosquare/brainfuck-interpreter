@@ -2,7 +2,6 @@
 members = ["crates/*"]
 
 [workspace.package]
-name = "brainfuck-interpreter"
 version = "0.1.0"
 edition = "2021"
 authors = ["Justin Chen (ctj12461) <ctj12461@163.com>"]

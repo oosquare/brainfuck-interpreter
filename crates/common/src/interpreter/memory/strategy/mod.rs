@@ -247,10 +247,10 @@ mod tests {
     #[test]
     fn i8_cell_strategy() {
         let c = I8CellStrategy {};
-        assert_eq!(c.is_overflowed(127), false);
-        assert_eq!(c.is_overflowed(128), true);
-        assert_eq!(c.is_overflowed(-128), false);
-        assert_eq!(c.is_overflowed(-129), true);
+        assert!(!c.is_overflowed(127));
+        assert!(c.is_overflowed(128));
+        assert!(!c.is_overflowed(-128));
+        assert!(c.is_overflowed(-129));
 
         assert_eq!(c.wrap(127), 127);
         assert_eq!(c.wrap(128), -128);
@@ -264,9 +264,9 @@ mod tests {
     fn i32_cell_strategy() {
         let c = I32CellStrategy {};
         // i32::MAX = 2147483647, i32::MIN = -2147483648
-        assert_eq!(c.is_overflowed(2147483648i64), true);
-        assert_eq!(c.is_overflowed(-2147483648i64), false);
-        assert_eq!(c.is_overflowed(-2147483649i64), true);
+        assert!(c.is_overflowed(2147483648i64));
+        assert!(!c.is_overflowed(-2147483648i64));
+        assert!(c.is_overflowed(-2147483649i64));
 
         assert_eq!(c.wrap(-2147483649i64), 2147483647);
         assert_eq!(c.wrap(-2147483648i64 - 2147483647i64 - 1i64), 0);
