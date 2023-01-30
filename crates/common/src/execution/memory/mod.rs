@@ -1,7 +1,7 @@
 pub mod config;
 mod strategy;
 
-use config::{Addr, Cell, Eof, Overflow};
+use config::{Addr, Cell, Config, Eof, Overflow};
 use snafu::prelude::*;
 use strategy::{AddrRange, AddrStrategy, CellStrategy, EofStrategy, OverflowStrategy};
 
@@ -88,15 +88,35 @@ pub struct Builder {
     eof: Eof,
 }
 
+const DEFAULT_LEN: usize = 32768;
+
+#[allow(dead_code)]
 impl Builder {
     pub fn new() -> Self {
-        const DEFAULT_LEN: usize = 32768;
         Self {
             len: DEFAULT_LEN,
             addr: Addr::Unsigned,
             cell: Cell::I8,
             overflow: Overflow::Wrap,
             eof: Eof::Ignore,
+        }
+    }
+
+    pub fn with_config(config: Config) -> Self {
+        let Config {
+            len,
+            addr,
+            cell,
+            overflow,
+            eof,
+        } = config;
+
+        Self {
+            len,
+            addr,
+            cell,
+            overflow,
+            eof,
         }
     }
 

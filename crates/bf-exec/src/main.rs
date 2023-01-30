@@ -8,18 +8,17 @@
 //! Copyright (C) 2023 Justin Chen (ctj12461)
 //!
 
-#![allow(unused)]
-
 use std::error::Error;
 use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process;
 
 use clap::{
-    builder::PathBufValueParser, command, crate_authors, crate_description, value_parser, Arg,
+    builder::PathBufValueParser, command, value_parser, Arg,
     ArgMatches,
 };
-use common::{memory_config, stream_config, Interpreter, MemoryConfig, StreamConfig};
+use common::{memory_config, stream_config, MemoryConfig, StreamConfig};
+use bf_exec::Interpreter;
 
 fn main() {
     let matches = input();
@@ -44,9 +43,7 @@ fn main() {
 }
 
 fn input() -> ArgMatches {
-    let cmd = command!()
-        .author(crate_authors!())
-        .about(crate_description!());
+    let cmd = command!();
     let cmd = cmd.arg(
         Arg::new("LEN")
             .long("len")
@@ -204,7 +201,6 @@ fn run(
     code: String,
 ) -> Result<(), Box<dyn Error>> {
     let mut interpreter = Interpreter::new(memory_config, stream_config);
-    interpreter.load(&code)?;
-    interpreter.run()?;
+    interpreter.run(&code)?;
     Ok(())
 }

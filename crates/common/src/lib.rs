@@ -15,14 +15,11 @@
     clippy::comparison_chain
 )]
 
-pub mod compiler;
-pub mod execution;
+mod compiler;
+mod execution;
 
-pub use compiler::ParseError;
-pub use execution::memory::{
-    config::{self as memory_config, Config as MemoryConfig},
-    MemoryError,
-};
-pub use execution::processor::ProcessorError;
-pub use execution::stream::config::{self as stream_config, Config as StreamConfig};
-pub use execution::{Interpreter, InterpreterError};
+pub use compiler::{Compiler, Instruction, InstructionList, ParseError};
+pub use execution::memory_config::{self, Config as MemoryConfig};
+pub use execution::stream_config::{self, Config as StreamConfig};
+pub use execution::Context;
+pub use execution::{Processor, ProcessorError};

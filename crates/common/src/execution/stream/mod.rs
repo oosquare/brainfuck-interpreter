@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 use std::io::{stdin, BufReader, Read, Stdin};
 use std::rc::Rc;
 
-use config::{Input, Output};
+use config::{Config, Input, Output};
 
 pub const EOF: i8 = -1;
 
@@ -105,12 +105,18 @@ pub struct Builder {
     output: Output,
 }
 
+#[allow(dead_code)]
 impl Builder {
     pub fn new() -> Self {
         Self {
             input: Input::Standard,
             output: Output::CharStandard,
         }
+    }
+
+    pub fn with_config(config: Config) -> Self {
+        let Config { input, output } = config;
+        Self { input, output }
     }
 
     pub fn input(mut self, input: Input) -> Self {
