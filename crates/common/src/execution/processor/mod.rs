@@ -1,8 +1,8 @@
 use snafu::prelude::*;
 
 use crate::compiler::{Instruction, InstructionList};
-use crate::interpreter::context::Context;
-use crate::interpreter::memory::MemoryError;
+use crate::execution::context::Context;
+use crate::execution::memory::MemoryError;
 
 pub type Result<T> = std::result::Result<T, ProcessorError>;
 

@@ -1,5 +1,5 @@
 use super::{MemoryError, Result};
-use crate::interpreter::stream::EOF;
+use crate::execution::stream::EOF;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct AddrRange {

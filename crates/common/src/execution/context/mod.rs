@@ -1,7 +1,7 @@
-use crate::interpreter::memory::{
+use crate::execution::memory::{
     config::Config as MemoryConfig, Builder as MemoryBuilder, Memory,
 };
-use crate::interpreter::stream::{
+use crate::execution::stream::{
     config::Config as StreamConfig, Builder as StreamBuilder, InStream, OutStream,
 };
 

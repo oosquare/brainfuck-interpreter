@@ -1,5 +1,5 @@
 pub mod config;
-pub(super) mod strategy;
+mod strategy;
 
 use config::{Addr, Cell, Eof, Overflow};
 use snafu::prelude::*;

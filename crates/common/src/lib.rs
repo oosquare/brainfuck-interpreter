@@ -16,13 +16,13 @@
 )]
 
 pub mod compiler;
-pub mod interpreter;
+pub mod execution;
 
 pub use compiler::ParseError;
-pub use interpreter::memory::{
+pub use execution::memory::{
     config::{self as memory_config, Config as MemoryConfig},
     MemoryError,
 };
-pub use interpreter::processor::ProcessorError;
-pub use interpreter::stream::config::{self as stream_config, Config as StreamConfig};
-pub use interpreter::{Interpreter, InterpreterError};
+pub use execution::processor::ProcessorError;
+pub use execution::stream::config::{self as stream_config, Config as StreamConfig};
+pub use execution::{Interpreter, InterpreterError};
