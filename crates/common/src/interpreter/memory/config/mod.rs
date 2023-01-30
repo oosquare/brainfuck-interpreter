@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 #[derive(Clone)]
 pub struct Config {
     pub len: usize,

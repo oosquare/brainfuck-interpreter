@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 mod instruction;
 mod lexer;
 mod parser;

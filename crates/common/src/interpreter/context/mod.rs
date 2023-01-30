@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::interpreter::memory::{
     config::Config as MemoryConfig, Builder as MemoryBuilder, Memory,
 };

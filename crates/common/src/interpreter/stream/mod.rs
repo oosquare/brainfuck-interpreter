@@ -1,11 +1,8 @@
-#![allow(unused)]
-
 pub mod config;
 
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::io::{stdin, BufReader, Read, Stdin};
-use std::mem::replace;
 use std::rc::Rc;
 
 use config::{Input, Output};

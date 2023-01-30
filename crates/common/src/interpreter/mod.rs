@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 pub mod context;
 pub mod memory;
 pub mod processor;
@@ -7,9 +5,9 @@ pub mod stream;
 
 use snafu::prelude::*;
 
-use crate::compiler::{Compiler, InstructionList, ParseError};
+use crate::compiler::{Compiler, ParseError};
 use context::Context;
-use memory::{config::Config as MemoryConfig, Memory};
+use memory::config::Config as MemoryConfig;
 use processor::{Processor, ProcessorError};
 use stream::config::Config as StreamConfig;
 

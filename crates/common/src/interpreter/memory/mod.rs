@@ -1,12 +1,8 @@
-#![allow(unused)]
-
 pub mod config;
 pub(super) mod strategy;
 
 use config::{Addr, Cell, Eof, Overflow};
 use snafu::prelude::*;
-use std::ops::Add;
-use std::rc::Rc;
 use strategy::{AddrRange, AddrStrategy, CellStrategy, EofStrategy, OverflowStrategy};
 
 pub type Result<T> = std::result::Result<T, MemoryError>;

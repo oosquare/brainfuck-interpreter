@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::compiler::parser::SyntaxTree;
 
 #[derive(Debug, PartialEq, Eq)]

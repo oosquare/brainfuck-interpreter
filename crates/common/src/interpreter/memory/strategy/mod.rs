@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use super::{MemoryError, Result};
 use crate::interpreter::stream::EOF;
 
@@ -115,7 +113,6 @@ pub struct I8CellStrategy {}
 
 impl CellStrategy for I8CellStrategy {
     fn is_overflowed(&self, num: i64) -> bool {
-        use std::primitive::i8;
         num < i8::MIN as i64 || num > i8::MAX as i64
     }
 
@@ -128,7 +125,6 @@ pub struct I32CellStrategy {}
 
 impl CellStrategy for I32CellStrategy {
     fn is_overflowed(&self, num: i64) -> bool {
-        use std::primitive::i32;
         num < i32::MIN as i64 || num > i32::MAX as i64
     }
 

@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SingleToken {
     GreaterThan,
