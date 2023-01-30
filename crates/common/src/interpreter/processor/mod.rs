@@ -2,8 +2,8 @@
 
 use snafu::prelude::*;
 
+use crate::compiler::{Instruction, InstructionList};
 use crate::interpreter::context::Context;
-use crate::interpreter::instruction::{Instruction, InstructionList};
 use crate::interpreter::memory::{Memory, MemoryError};
 use crate::interpreter::stream::{InStream, OutStream};
 

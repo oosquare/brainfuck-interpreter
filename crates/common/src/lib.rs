@@ -15,10 +15,10 @@
     clippy::comparison_chain
 )]
 
+pub mod compiler;
 pub mod interpreter;
-mod lexer;
-pub mod parser;
 
+pub use compiler::ParseError;
 pub use interpreter::memory::{
     config::{self as memory_config, Config as MemoryConfig},
     MemoryError,
@@ -26,4 +26,3 @@ pub use interpreter::memory::{
 pub use interpreter::processor::ProcessorError;
 pub use interpreter::stream::config::{self as stream_config, Config as StreamConfig};
 pub use interpreter::{Interpreter, InterpreterError};
-pub use parser::syntax::ParseError;

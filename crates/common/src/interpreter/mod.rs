@@ -1,17 +1,14 @@
 #![allow(unused)]
 
 pub mod context;
-mod instruction;
 pub mod memory;
 pub mod processor;
 pub mod stream;
 
 use snafu::prelude::*;
 
-use crate::parser::{parse, syntax::ParseError};
-
+use crate::compiler::{Compiler, InstructionList, ParseError};
 use context::Context;
-use instruction::InstructionList;
 use memory::{config::Config as MemoryConfig, Memory};
 use processor::{Processor, ProcessorError};
 use stream::config::Config as StreamConfig;
@@ -32,8 +29,8 @@ impl Interpreter {
     }
 
     pub fn load(&mut self, code: &str) -> Result<()> {
-        let syntax_tree = parse(code)?;
-        let instructions = InstructionList::compile(syntax_tree);
+        let compiler = Compiler::new();
+        let instructions = compiler.compile(code)?;
 
         self.processor = Some(Processor::new(instructions));
         Ok(())

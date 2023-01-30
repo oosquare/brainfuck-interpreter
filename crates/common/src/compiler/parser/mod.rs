@@ -1,8 +1,6 @@
 #![allow(unused)]
 
-use std::cmp::Ordering;
-
-use crate::lexer::{SingleToken, Token, TokenList};
+use crate::compiler::lexer::{SingleToken, Token, TokenList};
 use snafu::prelude::*;
 
 pub type Result<T> = std::result::Result<T, ParseError>;
@@ -18,7 +16,7 @@ pub enum SyntaxTree {
 }
 
 impl SyntaxTree {
-    pub(super) fn parse(tokens: TokenList) -> Result<SyntaxTree> {
+    pub fn parse(tokens: TokenList) -> Result<SyntaxTree> {
         let mut current = tokens.0.into_iter();
         let mut left_bracket_count = 0;
         let block = SyntaxTree::parse_impl(&mut current, &mut left_bracket_count)?;

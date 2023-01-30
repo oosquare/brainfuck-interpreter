@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use crate::parser::syntax::SyntaxTree;
+use crate::compiler::parser::SyntaxTree;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Instruction {
@@ -52,8 +52,6 @@ impl InstructionList {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::syntax;
-
     use super::*;
 
     #[test]

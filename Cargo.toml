@@ -1,15 +1,2 @@
 [workspace]
 members = ["crates/*"]
-
-[workspace.package]
-version = "0.1.0"
-edition = "2021"
-authors = ["Justin Chen (ctj12461) <ctj12461@163.com>"]
-description = "A fast, powerful and configurable interpreter written in Rust"
-readme = "README.md"
-repository = "https://github.com/ctj12461/brainfuck-interpreter"
-license = "MIT"
-
-[workspace.dependencies]
-clap = { version = "4.1.4", features = ["cargo"] }
-snafu = "0.7.4"
