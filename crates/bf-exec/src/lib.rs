@@ -1,4 +1,6 @@
-use common::{Context, Processor, MemoryConfig, StreamConfig, Compiler, ParseError, ProcessorError};
+use common::{
+    Compiler, Context, MemoryConfig, ParseError, Processor, ProcessorError, StreamConfig,
+};
 use snafu::prelude::*;
 
 type Result<T> = std::result::Result<T, InterpreterError>;
@@ -9,7 +11,9 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new(memory_config: MemoryConfig, stream_config: StreamConfig) -> Self {
-        Self { context: Context::new(memory_config, stream_config) }
+        Self {
+            context: Context::new(memory_config, stream_config),
+        }
     }
 
     pub fn run(&mut self, code: &str) -> Result<()> {

@@ -139,6 +139,10 @@ impl Processor {
 
     pub fn run(&mut self, context: &mut Context) -> Result<()> {
         match self.state {
+            // There is only one halt instruction
+            ProcessorState::Ready if self.instructions.0.len() == 1 => {
+                return Err(ProcessorError::Empty)
+            }
             ProcessorState::Halted => return Err(ProcessorError::AlreadyHalted),
             ProcessorState::Failed => return Err(ProcessorError::Failed),
             _ => {}
@@ -160,6 +164,8 @@ pub enum ProcessorError {
     AlreadyHalted,
     #[snafu(display("couldn't continue to run due to the previous error"))]
     Failed,
+    #[snafu(display("empty program loaded"))]
+    Empty,
 }
 
 impl From<MemoryError> for ProcessorError {

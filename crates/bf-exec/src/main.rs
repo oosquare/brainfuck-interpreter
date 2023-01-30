@@ -13,12 +13,9 @@ use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process;
 
-use clap::{
-    builder::PathBufValueParser, command, value_parser, Arg,
-    ArgMatches,
-};
-use common::{memory_config, stream_config, MemoryConfig, StreamConfig};
 use bf_exec::Interpreter;
+use clap::{builder::PathBufValueParser, command, value_parser, Arg, ArgMatches};
+use common::{memory_config, stream_config, MemoryConfig, StreamConfig};
 
 fn main() {
     let matches = input();
