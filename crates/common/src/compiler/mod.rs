@@ -4,8 +4,8 @@ mod parser;
 
 pub use instruction::{Instruction, InstructionList};
 use lexer::build_token_list;
-pub use parser::ParseError;
-use parser::SyntaxTree;
+pub use parser::{ParseError, AddWhileZeroArg};
+use parser::Parser;
 
 pub type Result<T> = std::result::Result<T, ParseError>;
 
@@ -18,7 +18,8 @@ impl Compiler {
 
     pub fn compile(&self, code: &str) -> Result<InstructionList> {
         let token_list = build_token_list(code);
-        let syntax_tree = SyntaxTree::parse(token_list)?;
+        let parser = Parser::new();
+        let syntax_tree = parser.parse(token_list)?;
         let instruction_list = InstructionList::compile(syntax_tree);
         Ok(instruction_list)
     }

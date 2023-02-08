@@ -1,8 +1,10 @@
 use snafu::prelude::*;
 
-use crate::compiler::{Instruction, InstructionList};
+use crate::compiler::{Instruction, InstructionList, AddWhileZeroArg};
 use crate::execution::context::Context;
 use crate::execution::memory::MemoryError;
+
+use super::Memory;
 
 pub type Result<T> = std::result::Result<T, ProcessorError>;
 
@@ -87,9 +89,9 @@ impl Processor {
             _ => {}
         }
 
-        match self.instructions.0[self.counter.get()] {
-            Instruction::Add(val) => {
-                if let Err(e) = memory.add(val) {
+        match &self.instructions.0[self.counter.get()] {
+            Instruction::Add { val } => {
+                if let Err(e) = memory.add(*val) {
                     self.abort();
                     Err(e.into())
                 } else {
@@ -97,8 +99,8 @@ impl Processor {
                     Ok(())
                 }
             }
-            Instruction::Seek(offset) => {
-                if let Err(e) = memory.seek(offset) {
+            Instruction::Seek { offset } => {
+                if let Err(e) = memory.seek(*offset) {
                     self.abort();
                     Err(e.into())
                 } else {
@@ -106,6 +108,20 @@ impl Processor {
                     Ok(())
                 }
             }
+            Instruction::Clear => {
+                memory.set(0);
+                self.tick();
+                Ok(())
+            }
+            Instruction::AddWhileZero { target } => {
+                if let Err(e) = self.add_while_zero(target, memory) {
+                    self.abort();
+                    Err(e)
+                } else {
+                    self.tick();
+                    Ok(())
+                }
+            },
             Instruction::Input => {
                 memory.set(in_stream.read());
                 self.tick();
@@ -116,14 +132,14 @@ impl Processor {
                 self.tick();
                 Ok(())
             }
-            Instruction::Jump(target) => {
-                self.counter.jump(target);
+            Instruction::Jump { target } => {
+                self.counter.jump(*target);
                 self.check_halted();
                 Ok(())
             }
-            Instruction::JumpIfZero(target) => {
+            Instruction::JumpIfZero { target } => {
                 if memory.get() == 0 {
-                    self.counter.jump(target);
+                    self.counter.jump(*target);
                     self.check_halted();
                 } else {
                     self.tick();
@@ -135,6 +151,20 @@ impl Processor {
                 unreachable!()
             }
         }
+    }
+
+    fn add_while_zero(&self, target: &Vec<AddWhileZeroArg>, memory: &mut Memory) -> Result<()> {
+        let val = memory.get();
+        memory.set(0);
+        eprintln!("{target:?}");
+        for AddWhileZeroArg { offset, times } in target {
+            // eprintln!("now = {}, offset = {}", memory.position(), *offset);
+            memory.seek(*offset)?;
+            memory.add(val * *times)?;
+            memory.seek(-*offset)?;
+        }
+
+        Ok(())
     }
 
     pub fn run(&mut self, context: &mut Context) -> Result<()> {

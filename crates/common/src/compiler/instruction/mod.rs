@@ -1,13 +1,15 @@
-use crate::compiler::parser::SyntaxTree;
+use crate::compiler::parser::{SyntaxTree, AddWhileZeroArg};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Instruction {
-    Add(i32),
-    Seek(isize),
+    Add { val: i32 },
+    Seek { offset: isize },
+    Clear,
+    AddWhileZero { target: Vec<AddWhileZeroArg>},
     Input,
     Output,
-    Jump(usize),
-    JumpIfZero(usize),
+    Jump { target: usize },
+    JumpIfZero { target: usize },
     Halt,
 }
 
@@ -17,7 +19,7 @@ pub struct InstructionList(pub Vec<Instruction>);
 impl InstructionList {
     pub fn compile(syntax_tree: SyntaxTree) -> InstructionList {
         let root = match syntax_tree {
-            SyntaxTree::Root(v) => v,
+            SyntaxTree::Root { block: v } => v,
             _ => unreachable!(),
         };
 
@@ -30,19 +32,21 @@ impl InstructionList {
     fn compile_impl(ins: &mut Vec<Instruction>, syntax_tree: Vec<SyntaxTree>) {
         for node in syntax_tree {
             match node {
-                SyntaxTree::Add(val) => ins.push(Instruction::Add(val)),
-                SyntaxTree::Seek(offset) => ins.push(Instruction::Seek(offset as isize)),
+                SyntaxTree::Add { val } => ins.push(Instruction::Add { val }),
+                SyntaxTree::Seek { offset } => ins.push(Instruction::Seek { offset: offset as isize }),
+                SyntaxTree::Clear => ins.push(Instruction::Clear),
+                SyntaxTree::AddWhileZero { target } => ins.push(Instruction::AddWhileZero { target }),
                 SyntaxTree::Input => ins.push(Instruction::Input),
                 SyntaxTree::Output => ins.push(Instruction::Output),
-                SyntaxTree::Loop(child) => {
+                SyntaxTree::Loop { block } => {
                     let loop_start_addr = ins.len();
-                    ins.push(Instruction::JumpIfZero(0)); // 0 as a placeholder
-                    InstructionList::compile_impl(ins, child);
+                    ins.push(Instruction::JumpIfZero { target: 0 }); // 0 as a placeholder
+                    InstructionList::compile_impl(ins, block);
                     let loop_end_addr = ins.len();
-                    ins.push(Instruction::Jump(loop_start_addr));
-                    ins[loop_start_addr] = Instruction::JumpIfZero(loop_end_addr + 1);
+                    ins.push(Instruction::Jump { target: loop_start_addr });
+                    ins[loop_start_addr] = Instruction::JumpIfZero { target: loop_end_addr + 1 };
                 }
-                SyntaxTree::Root(_) => unreachable!(),
+                SyntaxTree::Root { block: _ } => unreachable!(),
             }
         }
     }
@@ -54,31 +58,37 @@ mod tests {
 
     #[test]
     fn compile() {
-        let syntax_tree = SyntaxTree::Root(vec![
-            SyntaxTree::Input,
-            SyntaxTree::Add(1),
-            SyntaxTree::Loop(vec![
-                SyntaxTree::Seek(-1),
-                SyntaxTree::Add(1),
-                SyntaxTree::Seek(1),
-                SyntaxTree::Loop(vec![SyntaxTree::Output]),
-            ]),
-            SyntaxTree::Output,
-        ]);
+        let syntax_tree = SyntaxTree::Root {
+            block: vec![
+                SyntaxTree::Input,
+                SyntaxTree::Add { val: 1 },
+                SyntaxTree::Loop {
+                    block: vec![
+                        SyntaxTree::Seek { offset: -1 },
+                        SyntaxTree::Add { val: 1 },
+                        SyntaxTree::Seek { offset: 1 },
+                        SyntaxTree::Loop {
+                            block: vec![SyntaxTree::Output],
+                        },
+                    ],
+                },
+                SyntaxTree::Output,
+            ],
+        };
 
         let ins = InstructionList::compile(syntax_tree);
 
         let expected = InstructionList(vec![
             Instruction::Input,
-            Instruction::Add(1),
-            Instruction::JumpIfZero(10),
-            Instruction::Seek(-1),
-            Instruction::Add(1),
-            Instruction::Seek(1),
-            Instruction::JumpIfZero(9),
+            Instruction::Add { val: 1 },
+            Instruction::JumpIfZero { target: 10 },
+            Instruction::Seek { offset: -1 },
+            Instruction::Add { val: 1 },
+            Instruction::Seek { offset: 1 },
+            Instruction::JumpIfZero { target: 9 },
             Instruction::Output,
-            Instruction::Jump(6),
-            Instruction::Jump(2),
+            Instruction::Jump { target: 6 },
+            Instruction::Jump { target: 2 },
             Instruction::Output,
             Instruction::Halt,
         ]);
@@ -88,7 +98,7 @@ mod tests {
 
     #[test]
     fn compile_from_empty_syntax_tree() {
-        let ins = InstructionList::compile(SyntaxTree::Root(vec![]));
+        let ins = InstructionList::compile(SyntaxTree::Root { block: vec![] });
         let expected = InstructionList(vec![Instruction::Halt]);
         assert_eq!(ins, expected);
     }
