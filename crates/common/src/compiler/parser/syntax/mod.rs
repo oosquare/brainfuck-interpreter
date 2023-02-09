@@ -4,12 +4,12 @@ use snafu::prelude::*;
 pub type Result<T> = std::result::Result<T, SyntaxError>;
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct AddWhileZeroArg {
+pub struct AddUntilZeroArg {
     pub offset: isize,
     pub times: i32,
 }
 
-impl AddWhileZeroArg {
+impl AddUntilZeroArg {
     pub fn new(offset: isize, times: i32) -> Self {
         Self { offset, times }
     }
@@ -20,7 +20,7 @@ pub enum SyntaxTree {
     Add { val: i32 },
     Seek { offset: i32 },
     Clear,
-    AddWhileZero { target: Vec<AddWhileZeroArg> },
+    AddUntilZero { target: Vec<AddUntilZeroArg> },
     Input,
     Output,
     Root { block: Vec<SyntaxTree> },

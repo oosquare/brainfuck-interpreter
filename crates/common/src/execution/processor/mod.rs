@@ -1,6 +1,6 @@
 use snafu::prelude::*;
 
-use crate::compiler::{Instruction, InstructionList, AddWhileZeroArg};
+use crate::compiler::{AddUntilZeroArg, Instruction, InstructionList};
 use crate::execution::context::Context;
 use crate::execution::memory::MemoryError;
 
@@ -53,14 +53,6 @@ impl Processor {
         }
     }
 
-    pub fn counter(&self) -> usize {
-        self.counter.get()
-    }
-
-    pub fn state(&self) -> ProcessorState {
-        self.state
-    }
-
     fn abort(&mut self) {
         self.state = ProcessorState::Failed;
     }
@@ -76,7 +68,7 @@ impl Processor {
         }
     }
 
-    pub fn step(&mut self, context: &mut Context) -> Result<()> {
+    fn step(&mut self, context: &mut Context) -> Result<()> {
         let Context {
             memory,
             in_stream,
@@ -113,7 +105,7 @@ impl Processor {
                 self.tick();
                 Ok(())
             }
-            Instruction::AddWhileZero { target } => {
+            Instruction::AddUntilZero { target } => {
                 if let Err(e) = self.add_while_zero(target, memory) {
                     self.abort();
                     Err(e)
@@ -121,7 +113,7 @@ impl Processor {
                     self.tick();
                     Ok(())
                 }
-            },
+            }
             Instruction::Input => {
                 memory.set(in_stream.read());
                 self.tick();
@@ -153,12 +145,16 @@ impl Processor {
         }
     }
 
-    fn add_while_zero(&self, target: &Vec<AddWhileZeroArg>, memory: &mut Memory) -> Result<()> {
+    fn add_while_zero(&self, target: &Vec<AddUntilZeroArg>, memory: &mut Memory) -> Result<()> {
         let val = memory.get();
+
+        if val == 0 {
+            return Ok(());
+        }
+
         memory.set(0);
-        eprintln!("{target:?}");
-        for AddWhileZeroArg { offset, times } in target {
-            // eprintln!("now = {}, offset = {}", memory.position(), *offset);
+
+        for AddUntilZeroArg { offset, times } in target {
             memory.seek(*offset)?;
             memory.add(val * *times)?;
             memory.seek(-*offset)?;

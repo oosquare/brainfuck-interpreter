@@ -1,5 +1,5 @@
+use crate::compiler::parser::syntax::AddUntilZeroArg;
 use crate::compiler::parser::syntax::SyntaxTree;
-use crate::compiler::parser::syntax::AddWhileZeroArg;
 
 pub trait Rule {
     fn apply(&self, block: SyntaxTree) -> SyntaxTree;
@@ -32,7 +32,7 @@ impl Optimizer {
 
     pub fn load_rules(&mut self) {
         self.add_rule(Box::new(ClearRule::new()));
-        self.add_rule(Box::new(AddWhileZeroRule::new()));
+        self.add_rule(Box::new(AddUntilZeroRule::new()));
     }
 
     fn add_rule(&mut self, rule: Box<dyn Rule>) {
@@ -63,15 +63,15 @@ impl Rule for ClearRule {
     }
 }
 
-pub struct AddWhileZeroRule;
+pub struct AddUntilZeroRule;
 
-impl AddWhileZeroRule {
+impl AddUntilZeroRule {
     pub fn new() -> Self {
         Self
     }
 }
 
-impl Rule for AddWhileZeroRule {
+impl Rule for AddUntilZeroRule {
     fn apply(&self, block: SyntaxTree) -> SyntaxTree {
         let block = match block {
             SyntaxTree::Loop { block } => block,
@@ -81,7 +81,7 @@ impl Rule for AddWhileZeroRule {
         // Check whether the first character in code is `-`.
         match block.get(0) {
             Some(SyntaxTree::Add { val: -1 }) => (),
-            _ => return SyntaxTree::Loop { block }
+            _ => return SyntaxTree::Loop { block },
         }
 
         // Check whether the characters after `-` in code start with `<` of `>`.
@@ -99,11 +99,11 @@ impl Rule for AddWhileZeroRule {
                     // Optimization fails if the program tries to change the
                     // counter inside a loop.
                     if current_offset == 0 {
-                        return SyntaxTree::Loop { block }
+                        return SyntaxTree::Loop { block };
                     }
 
-                    target.push(AddWhileZeroArg::new(current_offset, *val))
-                },
+                    target.push(AddUntilZeroArg::new(current_offset, *val))
+                }
                 SyntaxTree::Seek { offset } => current_offset += *offset as isize,
                 _ => return SyntaxTree::Loop { block },
             }
@@ -112,19 +112,16 @@ impl Rule for AddWhileZeroRule {
         // Ensure the last behavior is moving the pointer back to the place
         // where it stayed when the loop started.
         if current_offset != 0 {
-            return SyntaxTree::Loop { block };
-        }
-        
-        match block.last() {
-            Some(SyntaxTree::Seek { offset: _ }) => SyntaxTree::AddWhileZero { target },
-            _ => SyntaxTree::Loop { block },
+            SyntaxTree::Loop { block }
+        } else {
+            SyntaxTree::AddUntilZero { target }
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::compiler::parser::syntax::AddWhileZeroArg;
+    use crate::compiler::parser::syntax::AddUntilZeroArg;
 
     use super::*;
 
@@ -152,29 +149,51 @@ mod tests {
     }
 
     #[test]
-    fn add_while_zero_rule() {
+    fn add_until_zero_rule() {
         let mut optimizer = Optimizer::new();
-        optimizer.add_rule(Box::new(AddWhileZeroRule::new()));
+        optimizer.add_rule(Box::new(AddUntilZeroRule::new()));
 
         let tree = SyntaxTree::Root {
-            block: vec![SyntaxTree::Loop {
-                block: vec![
-                    SyntaxTree::Add { val: -1 },
-                    SyntaxTree::Seek { offset: 2 },
-                    SyntaxTree::Add { val: -2 },
-                    SyntaxTree::Seek { offset: -3 },
-                    SyntaxTree::Add { val: 1 },
-                    SyntaxTree::Seek { offset: 1 },
-                ],
-            }],
+            block: vec![
+                SyntaxTree::Loop {
+                    block: vec![
+                        SyntaxTree::Add { val: -1 },
+                        SyntaxTree::Seek { offset: 2 },
+                        SyntaxTree::Add { val: -2 },
+                        SyntaxTree::Seek { offset: -3 },
+                        SyntaxTree::Add { val: 1 },
+                        SyntaxTree::Seek { offset: 1 },
+                    ],
+                },
+                SyntaxTree::Loop {
+                    block: vec![
+                        SyntaxTree::Add { val: -1 },
+                        SyntaxTree::Seek { offset: 1 },
+                        SyntaxTree::Output,
+                        SyntaxTree::Add { val: 1 },
+                        SyntaxTree::Seek { offset: -1 },
+                    ],
+                },
+            ],
         };
 
         let tree = optimizer.optimize(tree);
 
         let expected = SyntaxTree::Root {
-            block: vec![SyntaxTree::AddWhileZero {
-                target: vec![AddWhileZeroArg::new(2, -2), AddWhileZeroArg::new(-1, 1)],
-            }],
+            block: vec![
+                SyntaxTree::AddUntilZero {
+                    target: vec![AddUntilZeroArg::new(2, -2), AddUntilZeroArg::new(-1, 1)],
+                },
+                SyntaxTree::Loop {
+                    block: vec![
+                        SyntaxTree::Add { val: -1 },
+                        SyntaxTree::Seek { offset: 1 },
+                        SyntaxTree::Output,
+                        SyntaxTree::Add { val: 1 },
+                        SyntaxTree::Seek { offset: -1 },
+                    ],
+                },
+            ],
         };
 
         assert_eq!(tree, expected);
@@ -183,7 +202,7 @@ mod tests {
     #[test]
     fn add_while_zero_rule_with_changing_the_counter_incorrectly() {
         let mut optimizer = Optimizer::new();
-        optimizer.add_rule(Box::new(AddWhileZeroRule::new()));
+        optimizer.add_rule(Box::new(AddUntilZeroRule::new()));
 
         let tree = SyntaxTree::Root {
             block: vec![SyntaxTree::Loop {
@@ -200,7 +219,7 @@ mod tests {
         };
 
         let tree = optimizer.optimize(tree);
-        
+
         // Failed to optimize the code and nothing changed
         let expected = SyntaxTree::Root {
             block: vec![SyntaxTree::Loop {

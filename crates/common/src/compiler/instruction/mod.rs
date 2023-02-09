@@ -1,11 +1,11 @@
-use crate::compiler::parser::{SyntaxTree, AddWhileZeroArg};
+use crate::compiler::parser::{AddUntilZeroArg, SyntaxTree};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Instruction {
     Add { val: i32 },
     Seek { offset: isize },
     Clear,
-    AddWhileZero { target: Vec<AddWhileZeroArg>},
+    AddUntilZero { target: Vec<AddUntilZeroArg> },
     Input,
     Output,
     Jump { target: usize },
@@ -33,9 +33,13 @@ impl InstructionList {
         for node in syntax_tree {
             match node {
                 SyntaxTree::Add { val } => ins.push(Instruction::Add { val }),
-                SyntaxTree::Seek { offset } => ins.push(Instruction::Seek { offset: offset as isize }),
+                SyntaxTree::Seek { offset } => ins.push(Instruction::Seek {
+                    offset: offset as isize,
+                }),
                 SyntaxTree::Clear => ins.push(Instruction::Clear),
-                SyntaxTree::AddWhileZero { target } => ins.push(Instruction::AddWhileZero { target }),
+                SyntaxTree::AddUntilZero { target } => {
+                    ins.push(Instruction::AddUntilZero { target })
+                }
                 SyntaxTree::Input => ins.push(Instruction::Input),
                 SyntaxTree::Output => ins.push(Instruction::Output),
                 SyntaxTree::Loop { block } => {
@@ -43,8 +47,12 @@ impl InstructionList {
                     ins.push(Instruction::JumpIfZero { target: 0 }); // 0 as a placeholder
                     InstructionList::compile_impl(ins, block);
                     let loop_end_addr = ins.len();
-                    ins.push(Instruction::Jump { target: loop_start_addr });
-                    ins[loop_start_addr] = Instruction::JumpIfZero { target: loop_end_addr + 1 };
+                    ins.push(Instruction::Jump {
+                        target: loop_start_addr,
+                    });
+                    ins[loop_start_addr] = Instruction::JumpIfZero {
+                        target: loop_end_addr + 1,
+                    };
                 }
                 SyntaxTree::Root { block: _ } => unreachable!(),
             }

@@ -4,8 +4,8 @@ mod parser;
 
 pub use instruction::{Instruction, InstructionList};
 use lexer::build_token_list;
-pub use parser::{ParseError, AddWhileZeroArg};
 use parser::Parser;
+pub use parser::{AddUntilZeroArg, ParseError};
 
 pub type Result<T> = std::result::Result<T, ParseError>;
 

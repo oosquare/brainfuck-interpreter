@@ -2,8 +2,9 @@ mod optimizer;
 mod syntax;
 
 use crate::compiler::lexer::TokenList;
+use optimizer::Optimizer;
 use snafu::prelude::*;
-pub use syntax::{SyntaxError, SyntaxTree, AddWhileZeroArg};
+pub use syntax::{AddUntilZeroArg, SyntaxError, SyntaxTree};
 
 type Result<T> = std::result::Result<T, ParseError>;
 
@@ -15,7 +16,7 @@ impl Parser {
     }
 
     pub fn parse(&self, token_list: TokenList) -> Result<SyntaxTree> {
-        let mut optimizer = optimizer::Optimizer::new();
+        let mut optimizer = Optimizer::new();
         optimizer.load_rules();
         let tree = SyntaxTree::build(token_list)?;
         let tree = optimizer.optimize(tree);
