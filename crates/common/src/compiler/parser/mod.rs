@@ -26,7 +26,7 @@ impl Parser {
 
 #[derive(Debug, Snafu, PartialEq, Eq)]
 pub enum ParseError {
-    #[snafu(display("error occurred when parsing code\ncaused by: {source}"))]
+    #[snafu(display("error occurred when parsing code"))]
     Syntax { source: SyntaxError },
 }
 

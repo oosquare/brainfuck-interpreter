@@ -19,14 +19,17 @@ use common::{memory_config, stream_config, MemoryConfig, StreamConfig};
 
 fn main() {
     let matches = input();
-    let (memory_config, stream_config, source) = parse(&matches);
+    let (memory_config, stream_config, path) = parse(&matches);
 
-    let code = match std::fs::read_to_string(source) {
+    let code = match std::fs::read_to_string(path) {
         Ok(code) => code,
         Err(e) => {
             match e.kind() {
-                ErrorKind::NotFound => eprintln!("error: couldn't find {}", source.display()),
-                _ => eprintln!("error: couldn't open {}\ncaused by: {e}", source.display()),
+                ErrorKind::NotFound => eprintln!("error: couldn't find {}", path.display()),
+                _ => {
+                    eprintln!("error: couldn't open {}", path.display());
+                    eprintln!("caused by: {e}");
+                }
             }
 
             process::exit(1);
@@ -34,8 +37,18 @@ fn main() {
     };
 
     if let Err(e) = run(memory_config, stream_config, code) {
-        println!("error: {e}");
+        print_error(e);
         process::exit(1);
+    }
+}
+
+fn print_error(e: Box<dyn Error>) {
+    eprintln!("error: {e}");
+    let mut e = e.source();
+
+    while let Some(source) = e {
+        eprintln!("caused by: {source}");
+        e = source.source();
     }
 }
 

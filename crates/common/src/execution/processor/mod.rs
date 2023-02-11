@@ -184,7 +184,7 @@ impl Processor {
 
 #[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum ProcessorError {
-    #[snafu(display("invalid memory operation occurred\ncaused by: {source}"))]
+    #[snafu(display("invalid memory operation occurred"))]
     Memory { source: MemoryError },
     #[snafu(display("all instructions have already finished"))]
     AlreadyHalted,

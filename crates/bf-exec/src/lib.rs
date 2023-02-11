@@ -27,9 +27,9 @@ impl Interpreter {
 
 #[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum InterpreterError {
-    #[snafu(display("couldn't parse the code\ncaused by: {source}"))]
+    #[snafu(display("couldn't parse the code"))]
     Parse { source: ParseError },
-    #[snafu(display("an error occurred when running the code\ncaused by: {source}"))]
+    #[snafu(display("an error occurred when running the code"))]
     Runtime { source: ProcessorError },
     #[snafu(display("the program hasn't been loaded yet"))]
     Uninitialized,

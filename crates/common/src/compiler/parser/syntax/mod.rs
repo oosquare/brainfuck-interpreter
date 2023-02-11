@@ -87,9 +87,9 @@ impl SyntaxTree {
 
 #[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum SyntaxError {
-    #[snafu(display("unpaired `[` was found, and expect another `]`"))]
+    #[snafu(display("found an unpaired `[`, expected another `]`"))]
     UnpairedLeftBracket,
-    #[snafu(display("unpaired `]` was found, and expect another `[`"))]
+    #[snafu(display("found an unpaired `]`, expected another `[`"))]
     UnpairedRightBracket,
 }
 
