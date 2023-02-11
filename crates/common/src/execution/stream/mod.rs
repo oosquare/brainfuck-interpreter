@@ -13,7 +13,7 @@ pub trait InStream {
     fn read(&mut self) -> i8;
 }
 
-pub struct NullInStream {}
+pub struct NullInStream;
 
 impl InStream for NullInStream {
     fn read(&mut self) -> i8 {
@@ -65,7 +65,13 @@ pub trait OutStream {
     fn write(&mut self, content: i32);
 }
 
-pub struct CharStandardOutStream {}
+pub struct NullOutStream;
+
+impl OutStream for NullOutStream {
+    fn write(&mut self, _content: i32) {}
+}
+
+pub struct CharStandardOutStream;
 
 impl OutStream for CharStandardOutStream {
     fn write(&mut self, content: i32) {
@@ -76,7 +82,7 @@ impl OutStream for CharStandardOutStream {
     }
 }
 
-pub struct IntStandardOutStream {}
+pub struct IntStandardOutStream;
 
 impl OutStream for IntStandardOutStream {
     fn write(&mut self, content: i32) {
@@ -131,14 +137,15 @@ impl Builder {
 
     pub fn build(self) -> (Box<dyn InStream>, Box<dyn OutStream>) {
         let input: Box<dyn InStream> = match self.input {
-            Input::Null => Box::new(NullInStream {}),
+            Input::Null => Box::new(NullInStream),
             Input::Standard => Box::new(StandardInStream::new()),
             Input::Vec(v) => Box::new(VecInStream::new(v)),
         };
 
         let output: Box<dyn OutStream> = match self.output {
-            Output::CharStandard => Box::new(CharStandardOutStream {}),
-            Output::IntStandard => Box::new(IntStandardOutStream {}),
+            Output::Null => Box::new(NullOutStream),
+            Output::CharStandard => Box::new(CharStandardOutStream),
+            Output::IntStandard => Box::new(IntStandardOutStream),
             Output::Vec(v) => Box::new(VecOutStream::new(v)),
         };
 

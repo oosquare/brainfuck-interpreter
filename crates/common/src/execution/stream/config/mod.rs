@@ -17,6 +17,7 @@ pub enum Input {
 
 #[derive(Clone)]
 pub enum Output {
+    Null,
     CharStandard,
     IntStandard,
     Vec(Rc<RefCell<VecDeque<i32>>>),
