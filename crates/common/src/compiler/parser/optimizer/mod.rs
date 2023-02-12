@@ -84,12 +84,6 @@ impl Rule for AddUntilZeroRule {
             _ => return SyntaxTree::Loop { block },
         }
 
-        // Check whether the characters after `-` in code start with `<` of `>`.
-        match block.get(1) {
-            Some(SyntaxTree::Seek { offset: _ }) => (),
-            _ => return SyntaxTree::Loop { block },
-        }
-
         let mut current_offset = 0;
         let mut target = Vec::with_capacity(block.len() / 2);
 
