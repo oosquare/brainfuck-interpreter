@@ -1,4 +1,4 @@
-use common::execution::memory::{Memory, AddrRange};
+use common::execution::memory::{AddrRange, Memory};
 use snafu::prelude::*;
 use std::fmt::{Display, Formatter};
 
@@ -11,7 +11,7 @@ pub struct MemoryView<'a> {
 impl Display for MemoryView<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let AddrRange { left, right } = self.range;
-        
+
         // First line
         write!(f, "| {:^5} |", "index")?;
 
@@ -88,8 +88,7 @@ mod tests {
         memory.seek(1).unwrap();
         memory.add(2).unwrap();
         let range = AddrRange { left: 0, right: 4 };
-        const OUTPUT: &str = 
-"| index |   0   |   1   |   2   |   3   |   4   |
+        const OUTPUT: &str = "| index |   0   |   1   |   2   |   3   |   4   |
 | value |  48   |   2   |   0   |   0   |   0   |
 | char  |   0   |       |       |       |       |";
         assert_eq!(format!("{}", get(&memory, range).unwrap()), OUTPUT);

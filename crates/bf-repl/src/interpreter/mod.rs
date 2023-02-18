@@ -1,7 +1,7 @@
 use common::compiler::{Compiler, ParseError};
 use common::execution::context::Context;
-use common::execution::processor::{ProcessorError, Processor};
-use common::execution::memory::{Memory, config::Config as MemoryConfig};
+use common::execution::memory::{config::Config as MemoryConfig, Memory};
+use common::execution::processor::{Processor, ProcessorError};
 use common::execution::stream::config::Config as StreamConfig;
 use snafu::prelude::*;
 

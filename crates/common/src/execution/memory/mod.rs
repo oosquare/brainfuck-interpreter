@@ -19,14 +19,11 @@ pub enum MemoryError {
     },
     #[snafu(display("try to access cell at {addr}, which is out of [{}, {}]",
     range.left, range.right))]
-    AccessOutOfBounds {
-        addr: isize,
-        range: AddrRange,
-    },
+    AccessOutOfBounds { addr: isize, range: AddrRange },
     #[snafu(display("{before} + {add} will overflow"))]
     AddOverflow { before: i32, add: i32 },
     #[snafu(display("{val} will overflow"))]
-    SetOverflow { val: i32 }
+    SetOverflow { val: i32 },
 }
 
 pub struct Memory {
@@ -80,7 +77,13 @@ impl Memory {
     }
 
     pub fn set_at(&mut self, addr: isize, val: i32) -> Result<()> {
-        ensure!(self.range().contains(addr), AccessOutOfBoundsSnafu { addr, range: self.range() });
+        ensure!(
+            self.range().contains(addr),
+            AccessOutOfBoundsSnafu {
+                addr,
+                range: self.range()
+            }
+        );
         let addr = self.addr_strategy.calc(addr);
         let target = self.memory.get_mut(addr).unwrap();
 
@@ -98,7 +101,13 @@ impl Memory {
     }
 
     pub fn get_at(&self, addr: isize) -> Result<i32> {
-        ensure!(self.range().contains(addr), AccessOutOfBoundsSnafu { addr, range: self.range() });
+        ensure!(
+            self.range().contains(addr),
+            AccessOutOfBoundsSnafu {
+                addr,
+                range: self.range()
+            }
+        );
         let addr = self.addr_strategy.calc(addr);
         Ok(self.memory[addr])
     }

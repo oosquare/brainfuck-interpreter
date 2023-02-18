@@ -32,7 +32,7 @@ mod tests {
         let mut memory: Memory = Default::default();
         assert_eq!(execute(&mut memory, 0, 1), Ok(()));
         assert_eq!(memory.get_at(0), Ok(1));
-        
+
         assert_eq!(execute(&mut memory, 1, 2), Ok(()));
         assert_eq!(memory.get_at(1), Ok(2));
     }
@@ -40,12 +40,18 @@ mod tests {
     #[test]
     fn set_out_of_bound() {
         let mut memory: Memory = Default::default();
-        assert!(matches!(execute(&mut memory, -1, 0), Err(SetError::OutOfBound { source: _ })));
+        assert!(matches!(
+            execute(&mut memory, -1, 0),
+            Err(SetError::OutOfBound { source: _ })
+        ));
     }
 
     #[test]
     fn set_overflow() {
         let mut memory: Memory = Default::default();
-        assert!(matches!(execute(&mut memory, 1, 100000), Err(SetError::Overflow { source: _ })));
+        assert!(matches!(
+            execute(&mut memory, 1, 100000),
+            Err(SetError::Overflow { source: _ })
+        ));
     }
 }

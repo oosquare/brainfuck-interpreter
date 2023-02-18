@@ -75,10 +75,7 @@ pub struct CharStandardOutStream;
 
 impl OutStream for CharStandardOutStream {
     fn write(&mut self, content: i32) {
-        print!(
-            "{}",
-            char::from_u32(content as u32).unwrap_or('�')
-        );
+        print!("{}", char::from_u32(content as u32).unwrap_or('�'));
     }
 }
 
