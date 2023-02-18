@@ -11,6 +11,15 @@ impl AddrRange {
     pub fn len(&self) -> usize {
         (self.right - self.left + 1) as usize
     }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn contains(&self, addr: isize) -> bool {
+        self.left <= addr && addr <= self.right
+    }
 }
 
 pub trait AddrStrategy {
@@ -46,7 +55,7 @@ impl AddrStrategy for UnsignedAddrStrategy {
         if 0 <= target && target < self.len as isize {
             Ok(target)
         } else {
-            Err(MemoryError::OutOfBounds {
+            Err(MemoryError::SeekOutOfBounds {
                 now_position: addr,
                 offset,
                 range: self.range(),
@@ -83,7 +92,7 @@ impl AddrStrategy for SignedAddrStrategy {
         if -(self.half_len as isize) <= target && target < self.half_len as isize {
             Ok(target)
         } else {
-            Err(MemoryError::OutOfBounds {
+            Err(MemoryError::SeekOutOfBounds {
                 now_position: addr,
                 offset,
                 range: self.range(),
@@ -136,6 +145,8 @@ impl CellStrategy for I32CellStrategy {
 pub trait OverflowStrategy {
     /// Calculate and check the value for the `add` operation.
     fn add(&self, cell_strategy: &dyn CellStrategy, before: i32, add: i32) -> Result<i32>;
+
+    fn set(&self, cell_strategy: &dyn CellStrategy, val: i32) -> Result<i32>;
 }
 
 pub struct ErrorOverflowStrategy {}
@@ -145,9 +156,17 @@ impl OverflowStrategy for ErrorOverflowStrategy {
         let res = before as i64 + add as i64;
 
         if cell_strategy.is_overflowed(res) {
-            Err(MemoryError::Overflow { before, add })
+            Err(MemoryError::AddOverflow { before, add })
         } else {
             Ok(res as i32)
+        }
+    }
+
+    fn set(&self, cell_strategy: &dyn CellStrategy, val: i32) -> Result<i32> {
+        if cell_strategy.is_overflowed(val as i64) {
+            Err(MemoryError::SetOverflow { val })
+        } else {
+            Ok(val)
         }
     }
 }
@@ -164,10 +183,18 @@ impl OverflowStrategy for WrapOverflowStrategy {
             Ok(res as i32)
         }
     }
+
+    fn set(&self, cell_strategy: &dyn CellStrategy, val: i32) -> Result<i32> {
+        if cell_strategy.is_overflowed(val as i64) {
+            Ok(cell_strategy.wrap(val as i64))
+        } else {
+            Ok(val)
+        }
+    }
 }
 
 pub trait EofStrategy {
-    fn check(&self, input: i8) -> Option<i8>;
+    fn check(&self, input: i32) -> Option<i32>;
 }
 
 #[derive(Debug)]
@@ -175,7 +202,7 @@ pub struct ZeroEofStrategy {}
 
 /// Turn EOF to 0.
 impl EofStrategy for ZeroEofStrategy {
-    fn check(&self, input: i8) -> Option<i8> {
+    fn check(&self, input: i32) -> Option<i32> {
         if input == EOF {
             Some(0)
         } else {
@@ -188,7 +215,7 @@ impl EofStrategy for ZeroEofStrategy {
 pub struct KeepEofStrategy {}
 
 impl EofStrategy for KeepEofStrategy {
-    fn check(&self, input: i8) -> Option<i8> {
+    fn check(&self, input: i32) -> Option<i32> {
         Some(input)
     }
 }
@@ -197,7 +224,7 @@ impl EofStrategy for KeepEofStrategy {
 pub struct IgnoreEofStrategy {}
 
 impl EofStrategy for IgnoreEofStrategy {
-    fn check(&self, input: i8) -> Option<i8> {
+    fn check(&self, input: i32) -> Option<i32> {
         if input == EOF {
             None
         } else {
@@ -216,7 +243,7 @@ mod tests {
         assert_eq!(r.seek(0, 2), Ok(2));
         assert_eq!(
             r.seek(0, 5),
-            Err(MemoryError::OutOfBounds {
+            Err(MemoryError::SeekOutOfBounds {
                 now_position: 0,
                 offset: 5,
                 range: AddrRange { left: 0, right: 4 }
@@ -231,7 +258,7 @@ mod tests {
         assert_eq!(r.seek(0, -5), Ok(-5));
         assert_eq!(
             r.seek(0, -6),
-            Err(MemoryError::OutOfBounds {
+            Err(MemoryError::SeekOutOfBounds {
                 now_position: 0,
                 offset: -6,
                 range: AddrRange { left: -5, right: 4 }
@@ -275,7 +302,7 @@ mod tests {
         assert_eq!(o.add(&c, 0, 1), Ok(1));
         assert_eq!(
             o.add(&c, 127, 1),
-            Err(MemoryError::Overflow {
+            Err(MemoryError::AddOverflow {
                 before: 127,
                 add: 1
             })

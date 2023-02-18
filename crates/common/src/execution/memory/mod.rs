@@ -3,7 +3,8 @@ mod strategy;
 
 use config::{Addr, Cell, Config, Eof, Overflow};
 use snafu::prelude::*;
-use strategy::{AddrRange, AddrStrategy, CellStrategy, EofStrategy, OverflowStrategy};
+pub use strategy::AddrRange;
+use strategy::{AddrStrategy, CellStrategy, EofStrategy, OverflowStrategy};
 
 pub type Result<T> = std::result::Result<T, MemoryError>;
 
@@ -11,13 +12,21 @@ pub type Result<T> = std::result::Result<T, MemoryError>;
 pub enum MemoryError {
     #[snafu(display("try to seek pointer from {} to {}, which is out of [{}, {}]",
     now_position, now_position + offset, range.left, range.right))]
-    OutOfBounds {
+    SeekOutOfBounds {
         now_position: isize,
         offset: isize,
         range: AddrRange,
     },
+    #[snafu(display("try to access cell at {addr}, which is out of [{}, {}]",
+    range.left, range.right))]
+    AccessOutOfBounds {
+        addr: isize,
+        range: AddrRange,
+    },
     #[snafu(display("{before} + {add} will overflow"))]
-    Overflow { before: i32, add: i32 },
+    AddOverflow { before: i32, add: i32 },
+    #[snafu(display("{val} will overflow"))]
+    SetOverflow { val: i32 }
 }
 
 pub struct Memory {
@@ -66,17 +75,42 @@ impl Memory {
         Ok(())
     }
 
-    pub fn set(&mut self, val: i8) {
-        let addr = self.addr_strategy.calc(self.cur);
+    pub fn set(&mut self, val: i32) -> Result<()> {
+        self.set_at(self.cur, val)
+    }
+
+    pub fn set_at(&mut self, addr: isize, val: i32) -> Result<()> {
+        ensure!(self.range().contains(addr), AccessOutOfBoundsSnafu { addr, range: self.range() });
+        let addr = self.addr_strategy.calc(addr);
         let target = self.memory.get_mut(addr).unwrap();
 
         if let Some(res) = self.eof_strategy.check(val) {
-            *target = res as i32;
+            let strategy = self.cell_strategy.as_ref();
+            let res = self.overflow_strategy.set(strategy, res)?;
+            *target = res;
         }
+
+        Ok(())
     }
 
     pub fn get(&self) -> i32 {
-        self.memory[self.addr_strategy.calc(self.cur)]
+        self.get_at(self.cur).unwrap()
+    }
+
+    pub fn get_at(&self, addr: isize) -> Result<i32> {
+        ensure!(self.range().contains(addr), AccessOutOfBoundsSnafu { addr, range: self.range() });
+        let addr = self.addr_strategy.calc(addr);
+        Ok(self.memory[addr])
+    }
+
+    pub fn range(&self) -> AddrRange {
+        self.addr_strategy.range()
+    }
+}
+
+impl Default for Memory {
+    fn default() -> Self {
+        Builder::new().build()
     }
 }
 
@@ -97,7 +131,7 @@ impl Builder {
             len: DEFAULT_LEN,
             addr: Addr::Unsigned,
             cell: Cell::I8,
-            overflow: Overflow::Wrap,
+            overflow: Overflow::Error,
             eof: Eof::Ignore,
         }
     }

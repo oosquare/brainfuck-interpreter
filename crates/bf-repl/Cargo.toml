@@ -1,0 +1,10 @@
+[package]
+name = "bf-repl"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+common = { path = "../common" }
+clap = { version = "4.1.4", features = ["cargo"] }
+snafu = "0.7.4"

@@ -12,7 +12,7 @@ pub struct Config {
 pub enum Input {
     Null,
     Standard,
-    Vec(Rc<RefCell<VecDeque<i8>>>),
+    Vec(Rc<RefCell<VecDeque<i32>>>),
 }
 
 #[derive(Clone)]

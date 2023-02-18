@@ -7,16 +7,16 @@ use std::rc::Rc;
 
 use config::{Config, Input, Output};
 
-pub const EOF: i8 = -1;
+pub const EOF: i32 = -1;
 
 pub trait InStream {
-    fn read(&mut self) -> i8;
+    fn read(&mut self) -> i32;
 }
 
 pub struct NullInStream;
 
 impl InStream for NullInStream {
-    fn read(&mut self) -> i8 {
+    fn read(&mut self) -> i32 {
         EOF
     }
 }
@@ -34,29 +34,29 @@ impl StandardInStream {
 }
 
 impl InStream for StandardInStream {
-    fn read(&mut self) -> i8 {
+    fn read(&mut self) -> i32 {
         let mut buf = [0u8; 1];
         let res = self.reader.read(&mut buf);
 
         match res {
             Ok(0) | Err(_) => EOF,
-            _ => buf[0] as i8,
+            _ => buf[0] as i32,
         }
     }
 }
 
 pub struct VecInStream {
-    input: Rc<RefCell<VecDeque<i8>>>,
+    input: Rc<RefCell<VecDeque<i32>>>,
 }
 
 impl VecInStream {
-    pub fn new(input: Rc<RefCell<VecDeque<i8>>>) -> Self {
+    pub fn new(input: Rc<RefCell<VecDeque<i32>>>) -> Self {
         Self { input }
     }
 }
 
 impl InStream for VecInStream {
-    fn read(&mut self) -> i8 {
+    fn read(&mut self) -> i32 {
         self.input.borrow_mut().pop_front().unwrap_or(EOF)
     }
 }
@@ -77,7 +77,7 @@ impl OutStream for CharStandardOutStream {
     fn write(&mut self, content: i32) {
         print!(
             "{}",
-            std::primitive::char::from_u32(content as u32).unwrap_or('�')
+            char::from_u32(content as u32).unwrap_or('�')
         );
     }
 }
