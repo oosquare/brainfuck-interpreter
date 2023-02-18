@@ -1,4 +1,4 @@
-use common::{Memory, AddrRange};
+use common::execution::memory::{Memory, AddrRange};
 use snafu::prelude::*;
 use std::fmt::{Display, Formatter};
 

@@ -15,7 +15,8 @@ use std::process;
 
 use bf_exec::Interpreter;
 use clap::{builder::PathBufValueParser, command, value_parser, Arg, ArgMatches};
-use common::{memory_config, stream_config, MemoryConfig, StreamConfig};
+use common::execution::memory::config::{self as memory_config, Config as MemoryConfig};
+use common::execution::stream::config::{self as stream_config, Config as StreamConfig};
 
 fn main() {
     let matches = input();

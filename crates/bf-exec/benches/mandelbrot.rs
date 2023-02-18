@@ -1,5 +1,6 @@
 use bf_exec::Interpreter;
-use common::{memory_config::*, stream_config::*, MemoryConfig, StreamConfig};
+use common::execution::memory::config::{*, Config as MemoryConfig};
+use common::execution::stream::config::{*, Config as StreamConfig};
 use criterion::{criterion_group, criterion_main, Criterion};
 
 const BRAINFUCK_CODE: &str =

@@ -1,7 +1,8 @@
-pub use common::Memory;
-use common::{
-    Compiler, Context, MemoryConfig, ParseError, Processor, ProcessorError, StreamConfig,
-};
+use common::compiler::{Compiler, ParseError};
+use common::execution::context::Context;
+use common::execution::processor::{ProcessorError, Processor};
+use common::execution::memory::{Memory, config::Config as MemoryConfig};
+use common::execution::stream::config::Config as StreamConfig;
 use snafu::prelude::*;
 
 type Result<T> = std::result::Result<T, InterpreterError>;

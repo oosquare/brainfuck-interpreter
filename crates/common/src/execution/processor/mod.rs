@@ -2,9 +2,7 @@ use snafu::prelude::*;
 
 use crate::compiler::{AddUntilZeroArg, Instruction, InstructionList};
 use crate::execution::context::Context;
-use crate::execution::memory::MemoryError;
-
-use super::Memory;
+use crate::execution::memory::{Memory, MemoryError};
 
 pub type Result<T> = std::result::Result<T, ProcessorError>;
 
@@ -101,7 +99,7 @@ impl Processor {
                 }
             }
             Instruction::Clear => {
-                memory.set(0);
+                memory.set(0).unwrap();
                 self.tick();
                 Ok(())
             }
@@ -115,7 +113,7 @@ impl Processor {
                 }
             }
             Instruction::Input => {
-                memory.set(in_stream.read());
+                memory.set(in_stream.read()).unwrap();
                 self.tick();
                 Ok(())
             }
@@ -152,7 +150,7 @@ impl Processor {
             return Ok(());
         }
 
-        memory.set(0);
+        memory.set(0).unwrap();
 
         for AddUntilZeroArg { offset, times } in target {
             memory.seek(*offset)?;
