@@ -64,7 +64,18 @@ impl Memory {
     }
 
     pub fn add(&mut self, add: i32) -> Result<()> {
-        let addr = self.addr_strategy.calc(self.cur);
+        self.add_at(self.cur, add)
+    }
+
+    pub fn add_at(&mut self, addr: isize, add: i32) -> Result<()> {
+        ensure!(
+            self.range().contains(addr),
+            AccessOutOfBoundsSnafu {
+                addr,
+                range: self.range()
+            }
+        );
+        let addr = self.addr_strategy.calc(addr);
         let target = self.memory.get_mut(addr).unwrap();
         let strategy = self.cell_strategy.as_ref();
         let res = self.overflow_strategy.add(strategy, *target, add)?;

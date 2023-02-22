@@ -57,7 +57,7 @@ pub enum ViewError {
     InvalidRange { range: AddrRange },
 }
 
-fn get(memory: &Memory, range: AddrRange) -> Result<MemoryView> {
+pub fn execute(memory: &Memory, range: AddrRange) -> Result<MemoryView> {
     ensure!(range.left <= range.right, InvalidRangeSnafu { range });
 
     let AddrRange { left, right } = memory.range();
@@ -71,14 +71,8 @@ fn get(memory: &Memory, range: AddrRange) -> Result<MemoryView> {
 
     Ok(MemoryView { memory, range })
 }
-
-pub fn execute(memory: &Memory, range: AddrRange) -> Result<()> {
-    let view = get(memory, range)?;
-    println!("{view}");
-    Ok(())
-}
-
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]
@@ -91,6 +85,6 @@ mod tests {
         const OUTPUT: &str = "| index |   0   |   1   |   2   |   3   |   4   |
 | value |  48   |   2   |   0   |   0   |   0   |
 | char  |   0   |       |       |       |       |";
-        assert_eq!(format!("{}", get(&memory, range).unwrap()), OUTPUT);
+        assert_eq!(format!("{}", execute(&memory, range).unwrap()), OUTPUT);
     }
 }
