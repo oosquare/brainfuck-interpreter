@@ -11,7 +11,7 @@ use snafu::prelude::*;
 
 use crate::interpreter::Interpreter;
 
-use self::{get::GetError, run::RunError, add::AddError, set::SetError, view::ViewError};
+use self::{add::AddError, get::GetError, run::RunError, set::SetError, view::ViewError};
 
 pub type Result<T> = std::result::Result<T, CommandError>;
 
