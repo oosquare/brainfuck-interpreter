@@ -32,7 +32,10 @@ impl Command {
         match self {
             Command::Get { addr } => println!("{}", get::execute(interpreter.memory(), addr)?),
             Command::Position => println!("{}", position::execute(interpreter.memory())),
-            Command::Run { code } => run::execute(interpreter, &code)?,
+            Command::Run { code } => {
+                run::execute(interpreter, &code)?;
+                println!();
+            }
             Command::Add { addr, val } => add::execute(interpreter.memory_mut(), addr, val)?,
             Command::Set { addr, val } => set::execute(interpreter.memory_mut(), addr, val)?,
             Command::View { range } => println!("{}", view::execute(interpreter.memory(), range)?),
@@ -46,15 +49,15 @@ impl Command {
 
 #[derive(Snafu, Debug)]
 pub enum CommandError {
-    #[snafu(display("error occurred when executing command `get`"))]
+    #[snafu(display("an error occurred when executing command `get`"))]
     Get { source: GetError },
-    #[snafu(display("error occurred when executing command `run`"))]
+    #[snafu(display("an error occurred when executing command `run`"))]
     Run { source: RunError },
-    #[snafu(display("error occurred when executing command `add`"))]
+    #[snafu(display("an error occurred when executing command `add`"))]
     Add { source: AddError },
-    #[snafu(display("error occurred when executing command `set`"))]
+    #[snafu(display("an error occurred when executing command `set`"))]
     Set { source: SetError },
-    #[snafu(display("error occurred when executing command `view`"))]
+    #[snafu(display("an error occurred when executing command `view`"))]
     View { source: ViewError },
 }
 

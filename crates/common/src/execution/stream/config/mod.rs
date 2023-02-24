@@ -8,6 +8,15 @@ pub struct Config {
     pub output: Output,
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            input: Input::Standard,
+            output: Output::CharStandard,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub enum Input {
     Null,

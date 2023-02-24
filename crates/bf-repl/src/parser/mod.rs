@@ -5,7 +5,7 @@ use common::execution::memory::AddrRange;
 
 use snafu::prelude::*;
 
-type Result<T> = std::result::Result<T, ParseError>;
+pub type Result<T> = std::result::Result<T, ParseError>;
 
 pub struct Parser;
 
@@ -34,7 +34,7 @@ impl Parser {
         }
     }
 
-    fn into_num<T: FromStr>(&self, arg: &str) -> Result<T> {
+    fn get_num<T: FromStr>(&self, arg: &str) -> Result<T> {
         match arg.parse::<T>() {
             Ok(num) => Ok(num),
             Err(_) => Err(ParseError::InvalidArgument),
@@ -50,7 +50,7 @@ impl Parser {
 
     fn parse_get(&self, args: &str) -> Result<Command> {
         let pos = match self.split_whitespace(args)?.collect::<Vec<_>>()[..] {
-            [pos] => self.into_num(pos)?,
+            [pos] => self.get_num(pos)?,
             _ => return Err(ParseError::InvalidArgument),
         };
 
@@ -66,7 +66,7 @@ impl Parser {
 
     fn parse_add(&self, args: &str) -> Result<Command> {
         let (addr, val) = match self.split_whitespace(args)?.collect::<Vec<_>>()[..] {
-            [addr, val] => (self.into_num(addr)?, self.into_num(val)?),
+            [addr, val] => (self.get_num(addr)?, self.get_num(val)?),
             _ => return Err(ParseError::InvalidArgument),
         };
 
@@ -75,7 +75,7 @@ impl Parser {
 
     fn parse_set(&self, args: &str) -> Result<Command> {
         let (addr, val) = match self.split_whitespace(args)?.collect::<Vec<_>>()[..] {
-            [addr, val] => (self.into_num(addr)?, self.into_num(val)?),
+            [addr, val] => (self.get_num(addr)?, self.get_num(val)?),
             _ => return Err(ParseError::InvalidArgument),
         };
 
@@ -84,7 +84,7 @@ impl Parser {
 
     fn parse_view(&self, args: &str) -> Result<Command> {
         let (left, right) = match self.split_whitespace(args)?.collect::<Vec<_>>()[..] {
-            [left, right] => (self.into_num(left)?, self.into_num(right)?),
+            [left, right] => (self.get_num(left)?, self.get_num(right)?),
             _ => return Err(ParseError::InvalidArgument),
         };
 
@@ -96,7 +96,9 @@ impl Parser {
 
 #[derive(Snafu, Debug, PartialEq, Eq)]
 pub enum ParseError {
+    #[snafu(display("invalid argument found"))]
     InvalidArgument,
+    #[snafu(display("unknown command found. type `help` for help"))]
     UnknownCommand,
 }
 
